@@ -54,5 +54,12 @@ src/
     ├── JournalForm.tsx        # Slide-in create/edit panel
     ├── JournalDetail.tsx      # Full-screen entry view
     ├── DashboardStats.tsx     # Totals, average rating, reading timeline
+    ├── WishlistSection.tsx    # Lukulista: books to read, convertible to entries
+    ├── RecommendationsPanel.tsx # Safe-field recommendations from other users
     └── StarRating.tsx         # Star display + interactive picker
 ```
+
+## Wish list & community recommendations
+
+- **Lukulista**: add books you want to read; "Merkitse luetuksi" opens the journal form prefilled and removes the item once the entry is saved.
+- **Muut lukijat suosittelevat**: shows *only* the title, author, rating, and recommendation reason of entries other users marked as recommended (never their summaries, quotes, or reflections). Powered by the `recommendations` view in [supabase/schema.sql](supabase/schema.sql); local mode shows demo data. One click adds a recommendation to your own wish list.

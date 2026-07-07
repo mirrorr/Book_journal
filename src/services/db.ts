@@ -1,5 +1,11 @@
-import type { Book, BookInput } from '../types';
-import { SEED_BOOKS } from '../data/seed';
+import type {
+  Book,
+  BookInput,
+  Recommendation,
+  WishlistInput,
+  WishlistItem,
+} from '../types';
+import { MOCK_RECOMMENDATIONS, SEED_BOOKS } from '../data/seed';
 import { getSupabaseClient } from '../lib/supabaseClient';
 
 /**
@@ -14,6 +20,12 @@ export interface DbAdapter {
   create(input: BookInput): Promise<Book>;
   update(id: string, input: BookInput): Promise<Book>;
   remove(id: string): Promise<void>;
+  /** Lukulista: books the user wants to read later. */
+  listWishlist(): Promise<WishlistItem[]>;
+  addWishlist(input: WishlistInput): Promise<WishlistItem>;
+  removeWishlist(id: string): Promise<void>;
+  /** Safe-field recommendations from other users (mock data in local mode). */
+  listRecommendations(): Promise<Recommendation[]>;
 }
 
 /* ------------------------------------------------------------------ */
@@ -21,6 +33,7 @@ export interface DbAdapter {
 /* ------------------------------------------------------------------ */
 
 const STORAGE_KEY = 'lukupaivakirja.books.v1';
+const WISHLIST_KEY = 'lukupaivakirja.wishlist.v1';
 const MOCK_LATENCY_MS = 350;
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -88,6 +101,48 @@ class LocalStorageAdapter implements DbAdapter {
     await delay(MOCK_LATENCY_MS);
     this.write(this.read().filter((b) => b.id !== id));
   }
+
+  private readWishlist(): WishlistItem[] {
+    const raw = localStorage.getItem(WISHLIST_KEY);
+    if (!raw) return [];
+    try {
+      return JSON.parse(raw) as WishlistItem[];
+    } catch {
+      return [];
+    }
+  }
+
+  private writeWishlist(items: WishlistItem[]): void {
+    localStorage.setItem(WISHLIST_KEY, JSON.stringify(items));
+  }
+
+  async listWishlist(): Promise<WishlistItem[]> {
+    await delay(MOCK_LATENCY_MS);
+    return [...this.readWishlist()].sort((a, b) =>
+      b.created_at.localeCompare(a.created_at)
+    );
+  }
+
+  async addWishlist(input: WishlistInput): Promise<WishlistItem> {
+    await delay(MOCK_LATENCY_MS);
+    const item: WishlistItem = {
+      ...input,
+      id: crypto.randomUUID(),
+      created_at: new Date().toISOString(),
+    };
+    this.writeWishlist([item, ...this.readWishlist()]);
+    return item;
+  }
+
+  async removeWishlist(id: string): Promise<void> {
+    await delay(MOCK_LATENCY_MS);
+    this.writeWishlist(this.readWishlist().filter((i) => i.id !== id));
+  }
+
+  async listRecommendations(): Promise<Recommendation[]> {
+    await delay(MOCK_LATENCY_MS);
+    return MOCK_RECOMMENDATIONS;
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -137,6 +192,41 @@ class SupabaseAdapter implements DbAdapter {
   async remove(id: string): Promise<void> {
     const { error } = await this.table.delete().eq('id', id);
     if (error) throw new Error(error.message);
+  }
+
+  private get wishlistTable() {
+    return getSupabaseClient().from('wishlist');
+  }
+
+  async listWishlist(): Promise<WishlistItem[]> {
+    const { data, error } = await this.wishlistTable
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as WishlistItem[];
+  }
+
+  async addWishlist(input: WishlistInput): Promise<WishlistItem> {
+    const { data, error } = await this.wishlistTable.insert(input).select().single();
+    if (error) throw new Error(error.message);
+    return data as WishlistItem;
+  }
+
+  async removeWishlist(id: string): Promise<void> {
+    const { error } = await this.wishlistTable.delete().eq('id', id);
+    if (error) throw new Error(error.message);
+  }
+
+  async listRecommendations(): Promise<Recommendation[]> {
+    // The `recommendations` view exposes only safe columns of entries other
+    // users marked as recommended — never their private notes.
+    const { data, error } = await getSupabaseClient()
+      .from('recommendations')
+      .select('kirjan_nimi, kirjoittaja, arvio, suosittelu_syy')
+      .order('created_at', { ascending: false })
+      .limit(12);
+    if (error) throw new Error(error.message);
+    return (data ?? []) as Recommendation[];
   }
 }
 

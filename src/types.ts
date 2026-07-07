@@ -33,6 +33,29 @@ export interface Book {
 /** Payload for creating or updating an entry (id and created_at are managed by the data layer). */
 export type BookInput = Omit<Book, 'id' | 'created_at'>;
 
+/** A book on the "Lukulista" — something the user wants to read later. */
+export interface WishlistItem {
+  id: string;
+  kirjan_nimi: string;
+  kirjoittaja: string;
+  /** Free note, e.g. why it caught your eye or who recommended it. */
+  huomautus: string;
+  created_at: string;
+}
+
+export type WishlistInput = Omit<WishlistItem, 'id' | 'created_at'>;
+
+/**
+ * A recommendation from another user. Deliberately only the "safe" public
+ * fields — never the recommender's summaries, quotes, or reflections.
+ */
+export interface Recommendation {
+  kirjan_nimi: string;
+  kirjoittaja: string;
+  arvio: number;
+  suosittelu_syy: string;
+}
+
 export const EMPTY_BOOK_INPUT: BookInput = {
   kirjan_nimi: '',
   kirjoittaja: '',

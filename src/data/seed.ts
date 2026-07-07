@@ -1,4 +1,4 @@
-import type { BookInput } from '../types';
+import type { BookInput, Recommendation } from '../types';
 
 /**
  * Real-world sample data used to initialize an empty data store,
@@ -26,5 +26,30 @@ export const SEED_BOOKS: BookInput[] = [
     suosittelen: true,
     suosittelu_syy: 'helppo ja erittäin hauska lukea',
     kansikuva_url: '',
+  },
+];
+
+/**
+ * Demo recommendations shown in local mode, where there are no other users.
+ * In Supabase mode real recommendations come from the `recommendations` view.
+ */
+export const MOCK_RECOMMENDATIONS: Recommendation[] = [
+  {
+    kirjan_nimi: 'Kesäkirja',
+    kirjoittaja: 'Tove Jansson',
+    arvio: 5,
+    suosittelu_syy: 'lyhyet luvut ja lämmin tunnelma, sopii hitaaseen lukemiseen',
+  },
+  {
+    kirjan_nimi: 'Tuntematon sotilas',
+    kirjoittaja: 'Väinö Linna',
+    arvio: 4,
+    suosittelu_syy: 'klassikko, jonka hahmot jäävät mieleen pitkäksi aikaa',
+  },
+  {
+    kirjan_nimi: 'Koirien Kalevala',
+    kirjoittaja: 'Mauri Kunnas',
+    arvio: 4,
+    suosittelu_syy: 'hauska tapa tutustua Kalevalan tarinoihin',
   },
 ];

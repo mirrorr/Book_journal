@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Route, Routes } from 'react-router-dom';
-import type { Book, BookInput } from './types';
+import type { Book, BookInput, Recommendation, WishlistInput, WishlistItem } from './types';
 import { db, DATA_MODE } from './services/db';
 import JournalGrid from './components/JournalGrid';
 import JournalForm from './components/JournalForm';
@@ -8,6 +8,8 @@ import JournalDetail from './components/JournalDetail';
 import DashboardStats from './components/DashboardStats';
 import AuthPage from './components/AuthPage';
 import BackupControls, { type ImportResult } from './components/BackupControls';
+import WishlistSection from './components/WishlistSection';
+import RecommendationsPanel, { recommendationKey } from './components/RecommendationsPanel';
 import { useAuth } from './contexts/AuthContext';
 
 function LoadingState() {
@@ -37,17 +39,30 @@ function ErrorState({ message, onRetry }: { message: string; onRetry: () => void
 export default function App() {
   const { authEnabled, initializing, user, signOut } = useAuth();
   const [books, setBooks] = useState<Book[]>([]);
+  const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [editingBook, setEditingBook] = useState<Book | null>(null);
+  const [formPrefill, setFormPrefill] = useState<Partial<BookInput> | null>(null);
+  const [pendingWishlistId, setPendingWishlistId] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       await db.init();
-      setBooks(await db.list());
+      // Recommendations are nice-to-have: if the view is missing (e.g. an
+      // older database), the journal itself must still work.
+      const [bookList, wishlistItems, recs] = await Promise.all([
+        db.list(),
+        db.listWishlist().catch(() => [] as WishlistItem[]),
+        db.listRecommendations().catch(() => [] as Recommendation[]),
+      ]);
+      setBooks(bookList);
+      setWishlist(wishlistItems);
+      setRecommendations(recs);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Tietojen haku epäonnistui.');
     } finally {
@@ -82,6 +97,8 @@ export default function App() {
 
   const openNewForm = () => {
     setEditingBook(null);
+    setFormPrefill(null);
+    setPendingWishlistId(null);
     setFormOpen(true);
   };
 
@@ -93,6 +110,17 @@ export default function App() {
   const closeForm = () => {
     setFormOpen(false);
     setEditingBook(null);
+    setFormPrefill(null);
+    setPendingWishlistId(null);
+  };
+
+  // "Merkitse luetuksi": start a journal entry from a wish-list item. The
+  // item is removed from the list once the entry is actually saved.
+  const startEntryFromWishlist = (item: WishlistItem) => {
+    setEditingBook(null);
+    setFormPrefill({ kirjan_nimi: item.kirjan_nimi, kirjoittaja: item.kirjoittaja });
+    setPendingWishlistId(item.id);
+    setFormOpen(true);
   };
 
   const handleSubmit = async (input: BookInput) => {
@@ -104,9 +132,35 @@ export default function App() {
       setBooks((prev) =>
         [created, ...prev].sort((a, b) => b.valmistumispaiva.localeCompare(a.valmistumispaiva))
       );
+      if (pendingWishlistId) {
+        await db.removeWishlist(pendingWishlistId);
+        setWishlist((prev) => prev.filter((i) => i.id !== pendingWishlistId));
+      }
     }
     closeForm();
   };
+
+  const handleAddWishlist = async (input: WishlistInput) => {
+    const created = await db.addWishlist(input);
+    setWishlist((prev) => [created, ...prev]);
+  };
+
+  const handleRemoveWishlist = async (id: string) => {
+    await db.removeWishlist(id);
+    setWishlist((prev) => prev.filter((i) => i.id !== id));
+  };
+
+  const handleAddRecommendation = async (rec: Recommendation) => {
+    await handleAddWishlist({
+      kirjan_nimi: rec.kirjan_nimi,
+      kirjoittaja: rec.kirjoittaja,
+      huomautus: rec.suosittelu_syy ? `Suositeltu: ”${rec.suosittelu_syy}”` : '',
+    });
+  };
+
+  // Books already on the wishlist or in the journal: their recommendation
+  // cards show "already on your list" instead of an add button.
+  const knownKeys = new Set([...wishlist.map(recommendationKey), ...books.map(recommendationKey)]);
 
   const handleDelete = async (id: string) => {
     await db.remove(id);
@@ -181,6 +235,17 @@ export default function App() {
             element={
               <main className="space-y-10">
                 <DashboardStats books={books} />
+                <RecommendationsPanel
+                  recommendations={recommendations}
+                  existingKeys={knownKeys}
+                  onAddToWishlist={handleAddRecommendation}
+                />
+                <WishlistSection
+                  items={wishlist}
+                  onAdd={handleAddWishlist}
+                  onRemove={handleRemoveWishlist}
+                  onStartEntry={startEntryFromWishlist}
+                />
                 <div className="space-y-6">
                   <BackupControls books={books} onImport={handleImport} />
                   <JournalGrid books={books} onNewEntry={openNewForm} />
@@ -203,7 +268,12 @@ export default function App() {
       )}
 
       {formOpen && (
-        <JournalForm book={editingBook} onSubmit={handleSubmit} onClose={closeForm} />
+        <JournalForm
+          book={editingBook}
+          initial={formPrefill}
+          onSubmit={handleSubmit}
+          onClose={closeForm}
+        />
       )}
     </div>
   );

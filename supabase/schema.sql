@@ -61,6 +61,67 @@ create policy "Users delete own books"
   using (auth.uid() = user_id);
 
 -- ---------------------------------------------------------------------------
+-- Lukulista: books the user wants to read later. Same per-user isolation.
+-- ---------------------------------------------------------------------------
+
+create table if not exists public.wishlist (
+  id           uuid primary key default gen_random_uuid(),
+  user_id      uuid not null default auth.uid()
+                 references auth.users (id) on delete cascade,
+  kirjan_nimi  text not null,
+  kirjoittaja  text not null default '',
+  huomautus    text not null default '',
+  created_at   timestamptz not null default now()
+);
+
+create index if not exists wishlist_user_id_idx on public.wishlist (user_id);
+
+alter table public.wishlist enable row level security;
+
+drop policy if exists "Users read own wishlist" on public.wishlist;
+drop policy if exists "Users insert own wishlist" on public.wishlist;
+drop policy if exists "Users delete own wishlist" on public.wishlist;
+
+create policy "Users read own wishlist"
+  on public.wishlist for select
+  to authenticated
+  using (auth.uid() = user_id);
+
+create policy "Users insert own wishlist"
+  on public.wishlist for insert
+  to authenticated
+  with check (auth.uid() = user_id);
+
+create policy "Users delete own wishlist"
+  on public.wishlist for delete
+  to authenticated
+  using (auth.uid() = user_id);
+
+-- ---------------------------------------------------------------------------
+-- Community recommendations: a deliberately narrow window into other users'
+-- journals. The view runs with the owner's rights (security_invoker = off),
+-- bypassing books RLS on purpose — but it exposes ONLY the safe columns
+-- (title, author, rating, recommendation reason) of entries whose owner set
+-- suosittelen = true, and never the viewer's own entries. Summaries, quotes,
+-- and reflections stay private.
+-- ---------------------------------------------------------------------------
+
+create or replace view public.recommendations
+with (security_invoker = off) as
+  select
+    kirjan_nimi,
+    kirjoittaja,
+    arvio,
+    suosittelu_syy,
+    created_at
+  from public.books
+  where suosittelen = true
+    and user_id is distinct from auth.uid();
+
+revoke all on public.recommendations from anon, public;
+grant select on public.recommendations to authenticated;
+
+-- ---------------------------------------------------------------------------
 -- MIGRATION: run this instead if the old table (without user_id) already
 -- exists. Existing rows are assigned to the user whose email you set below.
 -- ---------------------------------------------------------------------------

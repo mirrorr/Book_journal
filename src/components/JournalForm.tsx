@@ -7,6 +7,8 @@ import BookCover from './BookCover';
 interface JournalFormProps {
   /** When provided, the form edits an existing entry; otherwise it creates a new one. */
   book?: Book | null;
+  /** Prefilled values for a new entry, e.g. title/author from the wish list. */
+  initial?: Partial<BookInput> | null;
   onSubmit: (input: BookInput) => Promise<void>;
   onClose: () => void;
 }
@@ -31,7 +33,7 @@ const inputClasses =
 
 const textareaClasses = `${inputClasses} min-h-28 resize-y leading-relaxed`;
 
-export default function JournalForm({ book, onSubmit, onClose }: JournalFormProps) {
+export default function JournalForm({ book, initial, onSubmit, onClose }: JournalFormProps) {
   const [form, setForm] = useState<BookInput>(EMPTY_BOOK_INPUT);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,9 +46,9 @@ export default function JournalForm({ book, onSubmit, onClose }: JournalFormProp
       // existed (e.g. kansikuva_url) still yield fully controlled inputs.
       setForm({ ...EMPTY_BOOK_INPUT, ...input });
     } else {
-      setForm(EMPTY_BOOK_INPUT);
+      setForm({ ...EMPTY_BOOK_INPUT, ...(initial ?? {}) });
     }
-  }, [book]);
+  }, [book, initial]);
 
   // Close on Escape for a polished modal feel.
   useEffect(() => {
