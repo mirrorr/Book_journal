@@ -7,6 +7,7 @@ import JournalForm from './components/JournalForm';
 import JournalDetail from './components/JournalDetail';
 import DashboardStats from './components/DashboardStats';
 import AuthPage from './components/AuthPage';
+import BackupControls, { type ImportResult } from './components/BackupControls';
 import { useAuth } from './contexts/AuthContext';
 
 function LoadingState() {
@@ -109,6 +110,29 @@ export default function App() {
     setBooks((prev) => prev.filter((b) => b.id !== id));
   };
 
+  // Restore entries from a backup file, skipping ones already in the journal
+  // (matched by title + author + finish date) so re-imports are safe.
+  const handleImport = async (inputs: BookInput[]): Promise<ImportResult> => {
+    const keyOf = (b: Pick<Book, 'kirjan_nimi' | 'kirjoittaja' | 'valmistumispaiva'>) =>
+      `${b.kirjan_nimi}|${b.kirjoittaja}|${b.valmistumispaiva}`.toLowerCase();
+    const existing = new Set(books.map(keyOf));
+
+    let added = 0;
+    let skipped = 0;
+    for (const input of inputs) {
+      const key = keyOf(input);
+      if (existing.has(key)) {
+        skipped++;
+        continue;
+      }
+      await db.create(input);
+      existing.add(key);
+      added++;
+    }
+    if (added > 0) setBooks(await db.list());
+    return { added, skipped };
+  };
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
       <header className="mb-10 flex flex-wrap items-end justify-between gap-4">
@@ -154,7 +178,10 @@ export default function App() {
             element={
               <main className="space-y-10">
                 <DashboardStats books={books} />
-                <JournalGrid books={books} onNewEntry={openNewForm} />
+                <div className="space-y-6">
+                  <BackupControls books={books} onImport={handleImport} />
+                  <JournalGrid books={books} onNewEntry={openNewForm} />
+                </div>
               </main>
             }
           />
