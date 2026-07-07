@@ -7,7 +7,7 @@ import { getSupabaseClient } from '../lib/supabaseClient';
  * `db` singleton below and never knows which backend is in use.
  */
 export interface DbAdapter {
-  /** One-time setup: seeds the store with sample data if it is empty. */
+  /** One-time setup (e.g. seeding demo data in local mode). */
   init(): Promise<void>;
   list(): Promise<Book[]>;
   get(id: string): Promise<Book | null>;
@@ -99,16 +99,10 @@ class SupabaseAdapter implements DbAdapter {
     return getSupabaseClient().from('books');
   }
 
-  async init(): Promise<void> {
-    const { count, error } = await this.table.select('id', {
-      count: 'exact',
-      head: true,
-    });
-    if (error) throw new Error(error.message);
-    if ((count ?? 0) > 0) return;
-    const { error: insertError } = await this.table.insert(SEED_BOOKS);
-    if (insertError) throw new Error(insertError.message);
-  }
+  // No seeding in Supabase mode: new users start with an empty journal.
+  // (Seeding here would also race when several auth events trigger
+  // concurrent init() calls right after login.)
+  async init(): Promise<void> {}
 
   async list(): Promise<Book[]> {
     const { data, error } = await this.table

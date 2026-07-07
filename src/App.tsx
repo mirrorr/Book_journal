@@ -55,15 +55,18 @@ export default function App() {
     }
   }, []);
 
-  // Fetch only when signed in (or always, in local mode). Re-runs on user
-  // change so switching accounts never shows the previous user's entries.
+  // Fetch only when signed in (or always, in local mode). Keyed on user id
+  // rather than the user object: Supabase emits several auth events after
+  // login (SIGNED_IN, TOKEN_REFRESHED, ...), each with a fresh user object,
+  // and re-running on identity would fire duplicate concurrent fetches.
+  const userId = user?.id ?? null;
   useEffect(() => {
-    if (authEnabled && !user) {
+    if (authEnabled && !userId) {
       setBooks([]);
       return;
     }
     void refresh();
-  }, [refresh, authEnabled, user]);
+  }, [refresh, authEnabled, userId]);
 
   if (initializing) {
     return (
