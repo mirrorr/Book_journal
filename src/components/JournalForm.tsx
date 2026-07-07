@@ -35,6 +35,7 @@ export default function JournalForm({ book, onSubmit, onClose }: JournalFormProp
   const [form, setForm] = useState<BookInput>(EMPTY_BOOK_INPUT);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [coverFailed, setCoverFailed] = useState(false);
 
   useEffect(() => {
     if (book) {
@@ -147,13 +148,23 @@ export default function JournalForm({ book, onSubmit, onClose }: JournalFormProp
                   type="url"
                   className={inputClasses}
                   value={form.kansikuva_url}
-                  onChange={(e) => set('kansikuva_url', e.target.value)}
+                  onChange={(e) => {
+                    set('kansikuva_url', e.target.value);
+                    setCoverFailed(false);
+                  }}
                   placeholder="https://…/kansi.jpg"
                 />
               </Field>
-              <p className="mt-1.5 text-xs text-zinc-400">
-                Jos jätät tyhjäksi, kirjalle piirretään tyylikäs oletuskansi.
-              </p>
+              {form.kansikuva_url && coverFailed ? (
+                <p className="mt-1.5 text-xs text-red-600">
+                  Kuvaa ei voitu ladata — tarkista, että osoite on suora linkki
+                  kuvatiedostoon (esim. päättyy .jpg tai .png).
+                </p>
+              ) : (
+                <p className="mt-1.5 text-xs text-zinc-400">
+                  Jos jätät tyhjäksi, kirjalle piirretään tyylikäs oletuskansi.
+                </p>
+              )}
             </div>
             <BookCover
               title={form.kirjan_nimi}
@@ -161,6 +172,7 @@ export default function JournalForm({ book, onSubmit, onClose }: JournalFormProp
               url={form.kansikuva_url}
               sizeClasses="h-28 w-20"
               className="mt-1"
+              onLoadResult={(ok) => setCoverFailed(!ok)}
             />
           </div>
 

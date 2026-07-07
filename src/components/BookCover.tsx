@@ -7,6 +7,8 @@ interface BookCoverProps {
   /** Controls the cover size, e.g. "h-28 w-20" on cards, "h-64 w-44" in detail. */
   sizeClasses: string;
   className?: string;
+  /** Reports whether the image URL loaded (true) or failed (false). */
+  onLoadResult?: (ok: boolean) => void;
 }
 
 /**
@@ -20,6 +22,7 @@ export default function BookCover({
   url,
   sizeClasses,
   className = '',
+  onLoadResult,
 }: BookCoverProps) {
   const [failed, setFailed] = useState(false);
 
@@ -37,7 +40,14 @@ export default function BookCover({
         <img
           src={url}
           alt=""
-          onError={() => setFailed(true)}
+          // Many book-cover hosts block hotlinking based on the Referer
+          // header; sending none makes far more image URLs work.
+          referrerPolicy="no-referrer"
+          onError={() => {
+            setFailed(true);
+            onLoadResult?.(false);
+          }}
+          onLoad={() => onLoadResult?.(true)}
           className="h-full w-full object-cover"
         />
       ) : (
