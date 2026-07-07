@@ -4,6 +4,8 @@ import { formatMonthYear } from '../lib/format';
 
 interface DashboardStatsProps {
   books: Book[];
+  /** Yearly reading goal from the profile; 0 or undefined = no goal set. */
+  lukutavoite?: number;
 }
 
 interface TimelineBucket {
@@ -46,7 +48,42 @@ function StatCard({ label, value, sublabel }: StatCardProps) {
   );
 }
 
-export default function DashboardStats({ books }: DashboardStatsProps) {
+function ReadingGoalCard({ books, goal }: { books: Book[]; goal: number }) {
+  const year = String(new Date().getFullYear());
+  const readThisYear = books.filter((b) => b.valmistumispaiva.startsWith(year)).length;
+  const progress = Math.min(100, (readThisYear / goal) * 100);
+  const done = readThisYear >= goal;
+
+  return (
+    <div className="rounded-2xl border border-ivory-300 bg-ivory-50 p-5 shadow-sm sm:col-span-3">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <p className="text-xs font-semibold uppercase tracking-widest text-sepia-500">
+          Lukutavoite {year}
+        </p>
+        <p className="text-sm text-zinc-500">
+          {done
+            ? `Tavoite saavutettu — hienoa! 🎉`
+            : `${goal - readThisYear} ${goal - readThisYear === 1 ? 'kirja' : 'kirjaa'} jäljellä`}
+        </p>
+      </div>
+      <div className="mt-3 flex items-center gap-4">
+        <p className="shrink-0 font-serif text-3xl text-ink-900">
+          {readThisYear} <span className="text-xl text-zinc-400">/ {goal}</span>
+        </p>
+        <div className="h-3 flex-1 overflow-hidden rounded-full bg-ivory-200">
+          <div
+            className={`h-full rounded-full transition-all ${
+              done ? 'bg-sepia-900' : 'bg-sepia-500'
+            }`}
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function DashboardStats({ books, lukutavoite = 0 }: DashboardStatsProps) {
   const stats = useMemo(() => {
     const total = books.length;
     const rated = books.filter((b) => b.arvio > 0);
@@ -63,12 +100,13 @@ export default function DashboardStats({ books }: DashboardStatsProps) {
     };
   }, [books]);
 
-  if (books.length === 0) return null;
+  if (books.length === 0 && lukutavoite === 0) return null;
 
   const maxCount = Math.max(...stats.timeline.map((b) => b.count), 1);
 
   return (
     <section aria-label="Lukutilastot" className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      {lukutavoite > 0 && <ReadingGoalCard books={books} goal={lukutavoite} />}
       <StatCard label="Luetut kirjat" value={String(stats.total)} sublabel="yhteensä päiväkirjassa" />
       <StatCard
         label="Keskiarvio"

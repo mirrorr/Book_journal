@@ -1,6 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Route, Routes } from 'react-router-dom';
-import type { Book, BookInput, Recommendation, WishlistInput, WishlistItem } from './types';
+import type {
+  Book,
+  BookInput,
+  Profile,
+  Recommendation,
+  Scoreboard,
+  WishlistInput,
+  WishlistItem,
+} from './types';
 import { db, DATA_MODE } from './services/db';
 import JournalGrid from './components/JournalGrid';
 import JournalForm from './components/JournalForm';
@@ -9,6 +17,8 @@ import DashboardStats from './components/DashboardStats';
 import AuthPage from './components/AuthPage';
 import BackupControls, { type ImportResult } from './components/BackupControls';
 import FeedbackDialog from './components/FeedbackDialog';
+import ProfileDialog from './components/ProfileDialog';
+import ScoreboardPanel from './components/ScoreboardPanel';
 import WishlistSection from './components/WishlistSection';
 import RecommendationsPanel, { recommendationKey } from './components/RecommendationsPanel';
 import { useAuth } from './contexts/AuthContext';
@@ -49,6 +59,9 @@ export default function App() {
   const [formPrefill, setFormPrefill] = useState<Partial<BookInput> | null>(null);
   const [pendingWishlistId, setPendingWishlistId] = useState<string | null>(null);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [scoreboard, setScoreboard] = useState<Scoreboard>({ monthly: [], total: [] });
+  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -57,14 +70,18 @@ export default function App() {
       await db.init();
       // Recommendations are nice-to-have: if the view is missing (e.g. an
       // older database), the journal itself must still work.
-      const [bookList, wishlistItems, recs] = await Promise.all([
+      const [bookList, wishlistItems, recs, userProfile, scores] = await Promise.all([
         db.list(),
         db.listWishlist().catch(() => [] as WishlistItem[]),
         db.listRecommendations().catch(() => [] as Recommendation[]),
+        db.getProfile().catch(() => null),
+        db.getScoreboard().catch(() => ({ monthly: [], total: [] }) as Scoreboard),
       ]);
       setBooks(bookList);
       setWishlist(wishlistItems);
       setRecommendations(recs);
+      setProfile(userProfile);
+      setScoreboard(scores);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Tietojen haku epäonnistui.');
     } finally {
@@ -85,6 +102,14 @@ export default function App() {
     void refresh();
   }, [refresh, authEnabled, userId]);
 
+  const handleSaveProfile = async (input: Profile) => {
+    const saved = await db.saveProfile(input);
+    setProfile(saved);
+    setProfileDialogOpen(false);
+    // Opting in/out or renaming changes the standings.
+    setScoreboard(await db.getScoreboard().catch(() => ({ monthly: [], total: [] }) as Scoreboard));
+  };
+
   if (initializing) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -95,6 +120,11 @@ export default function App() {
 
   if (authEnabled && !user) {
     return <AuthPage />;
+  }
+
+  // First login: the journal needs a username before anything else.
+  if (authEnabled && user && !loading && !error && !profile) {
+    return <ProfileDialog profile={null} firstTime onSave={handleSaveProfile} />;
   }
 
   const openNewForm = () => {
@@ -164,6 +194,7 @@ export default function App() {
   // cards show "already on your list" instead of an add button.
   const knownKeys = new Set([...wishlist.map(recommendationKey), ...books.map(recommendationKey)]);
 
+
   const handleDelete = async (id: string) => {
     await db.remove(id);
     setBooks((prev) => prev.filter((b) => b.id !== id));
@@ -211,18 +242,27 @@ export default function App() {
           >
             + Uusi merkintä
           </button>
-          {authEnabled && user && (
-            <div className="flex items-center gap-2 text-xs text-zinc-500">
-              <span>{user.email}</span>
-              <span aria-hidden="true">·</span>
-              <button
-                onClick={() => void signOut()}
-                className="font-medium text-sepia-700 transition hover:text-sepia-900 hover:underline"
-              >
-                Kirjaudu ulos
-              </button>
-            </div>
-          )}
+          <div className="flex items-center gap-2 text-xs text-zinc-500">
+            <button
+              onClick={() => setProfileDialogOpen(true)}
+              className="font-medium text-sepia-700 transition hover:text-sepia-900 hover:underline"
+            >
+              {profile ? `👤 ${profile.kayttajanimi}` : '👤 Profiili'}
+            </button>
+            {authEnabled && user && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span>{user.email}</span>
+                <span aria-hidden="true">·</span>
+                <button
+                  onClick={() => void signOut()}
+                  className="font-medium text-sepia-700 transition hover:text-sepia-900 hover:underline"
+                >
+                  Kirjaudu ulos
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </header>
 
@@ -236,7 +276,12 @@ export default function App() {
             path="/"
             element={
               <main className="space-y-10">
-                <DashboardStats books={books} />
+                <DashboardStats books={books} lukutavoite={profile?.lukutavoite ?? 0} />
+                <ScoreboardPanel
+                  scoreboard={scoreboard}
+                  profile={profile}
+                  onOpenProfile={() => setProfileDialogOpen(true)}
+                />
                 <RecommendationsPanel
                   recommendations={recommendations}
                   existingKeys={knownKeys}
@@ -307,6 +352,14 @@ export default function App() {
       )}
 
       {feedbackOpen && <FeedbackDialog onClose={() => setFeedbackOpen(false)} />}
+
+      {profileDialogOpen && (
+        <ProfileDialog
+          profile={profile}
+          onSave={handleSaveProfile}
+          onClose={() => setProfileDialogOpen(false)}
+        />
+      )}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import type { BookInput, Recommendation } from '../types';
+import type { BookInput, Recommendation, Scoreboard } from '../types';
 
 /**
  * Real-world sample data used to initialize an empty data store,
@@ -33,6 +33,23 @@ export const SEED_BOOKS: BookInput[] = [
  * Demo recommendations shown in local mode, where there are no other users.
  * In Supabase mode real recommendations come from the `recommendations` view.
  */
+/**
+ * Demo scoreboard shown in local mode. In Supabase mode real standings come
+ * from the scoreboard_monthly / scoreboard_total views.
+ */
+export const MOCK_SCOREBOARD: Scoreboard = {
+  monthly: [
+    { kayttajanimi: 'kirjatoukka88', kirjat: 4 },
+    { kayttajanimi: 'LukuLiisa', kirjat: 3 },
+    { kayttajanimi: 'dekkarifani', kirjat: 1 },
+  ],
+  total: [
+    { kayttajanimi: 'kirjatoukka88', kirjat: 42 },
+    { kayttajanimi: 'dekkarifani', kirjat: 31 },
+    { kayttajanimi: 'LukuLiisa', kirjat: 27 },
+  ],
+};
+
 export const MOCK_RECOMMENDATIONS: Recommendation[] = [
   {
     kirjan_nimi: 'Kesäkirja',

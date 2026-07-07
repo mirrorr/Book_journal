@@ -127,6 +127,76 @@ revoke all on public.recommendations from anon, public;
 grant select on public.recommendations to authenticated;
 
 -- ---------------------------------------------------------------------------
+-- Profiles: username (shown on the scoreboard instead of the email),
+-- scoreboard opt-in, and the yearly reading goal.
+-- ---------------------------------------------------------------------------
+
+create table if not exists public.profiles (
+  user_id         uuid primary key default auth.uid()
+                    references auth.users (id) on delete cascade,
+  kayttajanimi    text not null
+                    check (kayttajanimi ~ '^[A-Za-z0-9_åäöÅÄÖ]{3,20}$'),
+  public_profile  boolean not null default false,   -- opt-in to the scoreboard
+  lukutavoite     smallint not null default 0
+                    check (lukutavoite between 0 and 1000),  -- books/year, 0 = no goal
+  created_at      timestamptz not null default now()
+);
+
+-- Case-insensitive uniqueness: "Liisa" and "liisa" are the same name.
+create unique index if not exists profiles_kayttajanimi_lower_idx
+  on public.profiles (lower(kayttajanimi));
+
+alter table public.profiles enable row level security;
+
+drop policy if exists "Users read own profile" on public.profiles;
+drop policy if exists "Users insert own profile" on public.profiles;
+drop policy if exists "Users update own profile" on public.profiles;
+
+create policy "Users read own profile"
+  on public.profiles for select
+  to authenticated
+  using (auth.uid() = user_id);
+
+create policy "Users insert own profile"
+  on public.profiles for insert
+  to authenticated
+  with check (auth.uid() = user_id);
+
+create policy "Users update own profile"
+  on public.profiles for update
+  to authenticated
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+-- ---------------------------------------------------------------------------
+-- Scoreboard: monthly and all-time book counts of users who opted in
+-- (public_profile = true). Same deliberate security-definer pattern as the
+-- recommendations view: only the username and a count are ever exposed.
+-- ---------------------------------------------------------------------------
+
+drop view if exists public.scoreboard_total;
+create view public.scoreboard_total
+with (security_invoker = off) as
+  select p.kayttajanimi, count(b.id)::int as kirjat
+  from public.profiles p
+  join public.books b on b.user_id = p.user_id
+  where p.public_profile
+  group by p.kayttajanimi;
+
+drop view if exists public.scoreboard_monthly;
+create view public.scoreboard_monthly
+with (security_invoker = off) as
+  select p.kayttajanimi, count(b.id)::int as kirjat
+  from public.profiles p
+  join public.books b on b.user_id = p.user_id
+  where p.public_profile
+    and b.valmistumispaiva >= date_trunc('month', current_date)
+  group by p.kayttajanimi;
+
+revoke all on public.scoreboard_total, public.scoreboard_monthly from anon, public;
+grant select on public.scoreboard_total, public.scoreboard_monthly to authenticated;
+
+-- ---------------------------------------------------------------------------
 -- Feedback: bug reports and improvement ideas from users. Write-only for
 -- users (they can insert but not read others' feedback); read it yourself
 -- in the Supabase Table Editor or SQL Editor.

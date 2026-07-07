@@ -63,6 +63,26 @@ export interface FeedbackInput {
   viesti: string;
 }
 
+/** The user's public profile and personal settings. */
+export interface Profile {
+  /** Shown on the scoreboard instead of the email. 3–20 chars. */
+  kayttajanimi: string;
+  /** Opt-in: appear on the shared scoreboard. */
+  public_profile: boolean;
+  /** Reading goal, books per year. 0 = no goal. */
+  lukutavoite: number;
+}
+
+export interface ScoreRow {
+  kayttajanimi: string;
+  kirjat: number;
+}
+
+export interface Scoreboard {
+  monthly: ScoreRow[];
+  total: ScoreRow[];
+}
+
 export const EMPTY_BOOK_INPUT: BookInput = {
   kirjan_nimi: '',
   kirjoittaja: '',

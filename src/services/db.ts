@@ -2,11 +2,14 @@ import type {
   Book,
   BookInput,
   FeedbackInput,
+  Profile,
   Recommendation,
+  Scoreboard,
+  ScoreRow,
   WishlistInput,
   WishlistItem,
 } from '../types';
-import { MOCK_RECOMMENDATIONS, SEED_BOOKS } from '../data/seed';
+import { MOCK_RECOMMENDATIONS, MOCK_SCOREBOARD, SEED_BOOKS } from '../data/seed';
 import { getSupabaseClient } from '../lib/supabaseClient';
 
 /**
@@ -29,6 +32,11 @@ export interface DbAdapter {
   listRecommendations(): Promise<Recommendation[]>;
   /** Submit a bug report or improvement idea. */
   submitFeedback(input: FeedbackInput): Promise<void>;
+  /** The user's profile, or null if not created yet. */
+  getProfile(): Promise<Profile | null>;
+  saveProfile(input: Profile): Promise<Profile>;
+  /** Monthly and all-time standings of users who opted in. */
+  getScoreboard(): Promise<Scoreboard>;
 }
 
 /* ------------------------------------------------------------------ */
@@ -38,6 +46,7 @@ export interface DbAdapter {
 const STORAGE_KEY = 'lukupaivakirja.books.v1';
 const WISHLIST_KEY = 'lukupaivakirja.wishlist.v1';
 const FEEDBACK_KEY = 'lukupaivakirja.feedback.v1';
+const PROFILE_KEY = 'lukupaivakirja.profile.v1';
 const MOCK_LATENCY_MS = 350;
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -160,6 +169,47 @@ class LocalStorageAdapter implements DbAdapter {
     existing.push({ ...input, created_at: new Date().toISOString() });
     localStorage.setItem(FEEDBACK_KEY, JSON.stringify(existing));
   }
+
+  async getProfile(): Promise<Profile | null> {
+    await delay(MOCK_LATENCY_MS);
+    const raw = localStorage.getItem(PROFILE_KEY);
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as Profile;
+    } catch {
+      return null;
+    }
+  }
+
+  async saveProfile(input: Profile): Promise<Profile> {
+    await delay(MOCK_LATENCY_MS);
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(input));
+    return input;
+  }
+
+  async getScoreboard(): Promise<Scoreboard> {
+    await delay(MOCK_LATENCY_MS);
+    const monthly: ScoreRow[] = MOCK_SCOREBOARD.monthly.map((r) => ({ ...r }));
+    const total: ScoreRow[] = MOCK_SCOREBOARD.total.map((r) => ({ ...r }));
+
+    // In local mode there are no other users, so merge the local reader into
+    // the demo standings when they have opted in.
+    const raw = localStorage.getItem(PROFILE_KEY);
+    const profile = raw ? (JSON.parse(raw) as Profile) : null;
+    if (profile?.public_profile) {
+      const books = this.read();
+      const monthKey = new Date().toISOString().slice(0, 7);
+      monthly.push({
+        kayttajanimi: profile.kayttajanimi,
+        kirjat: books.filter((b) => b.valmistumispaiva.startsWith(monthKey)).length,
+      });
+      total.push({ kayttajanimi: profile.kayttajanimi, kirjat: books.length });
+    }
+
+    const top = (rows: ScoreRow[]) =>
+      rows.sort((a, b) => b.kirjat - a.kirjat).slice(0, 10);
+    return { monthly: top(monthly), total: top(total) };
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -249,6 +299,56 @@ class SupabaseAdapter implements DbAdapter {
   async submitFeedback(input: FeedbackInput): Promise<void> {
     const { error } = await getSupabaseClient().from('feedback').insert(input);
     if (error) throw new Error(error.message);
+  }
+
+  async getProfile(): Promise<Profile | null> {
+    const { data, error } = await getSupabaseClient()
+      .from('profiles')
+      .select('kayttajanimi, public_profile, lukutavoite')
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return (data as Profile) ?? null;
+  }
+
+  async saveProfile(input: Profile): Promise<Profile> {
+    const client = getSupabaseClient();
+    const {
+      data: { user },
+    } = await client.auth.getUser();
+    if (!user) throw new Error('Ei kirjautunutta käyttäjää.');
+    const { data, error } = await client
+      .from('profiles')
+      .upsert({ user_id: user.id, ...input }, { onConflict: 'user_id' })
+      .select('kayttajanimi, public_profile, lukutavoite')
+      .single();
+    if (error) {
+      throw new Error(
+        error.code === '23505' ? 'Käyttäjänimi on jo varattu.' : error.message
+      );
+    }
+    return data as Profile;
+  }
+
+  async getScoreboard(): Promise<Scoreboard> {
+    const client = getSupabaseClient();
+    const [monthly, total] = await Promise.all([
+      client
+        .from('scoreboard_monthly')
+        .select('kayttajanimi, kirjat')
+        .order('kirjat', { ascending: false })
+        .limit(10),
+      client
+        .from('scoreboard_total')
+        .select('kayttajanimi, kirjat')
+        .order('kirjat', { ascending: false })
+        .limit(10),
+    ]);
+    if (monthly.error) throw new Error(monthly.error.message);
+    if (total.error) throw new Error(total.error.message);
+    return {
+      monthly: (monthly.data ?? []) as ScoreRow[],
+      total: (total.data ?? []) as ScoreRow[],
+    };
   }
 }
 
