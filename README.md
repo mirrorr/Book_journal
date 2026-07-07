@@ -27,8 +27,9 @@ The data layer ([src/services/db.ts](src/services/db.ts)) exposes a single `db` 
    ```
    VITE_DATA_MODE=supabase
    VITE_SUPABASE_URL=https://<project-ref>.supabase.co
-   VITE_SUPABASE_ANON_KEY=<anon key>
+   VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
    ```
+   The publishable key is Supabase's current name for the public API key; legacy projects can set `VITE_SUPABASE_ANON_KEY` instead — both work.
 4. In Supabase → Authentication → URL Configuration, set **Site URL** to your Netlify URL so email-confirmation links redirect back to the deployed app.
 
 In Supabase mode the app shows a login/registration screen (email + password) before the journal. New users get the sample entry seeded into their own journal on first login. Registration sends a confirmation email by default; disable it under Authentication → Sign In / Up → "Confirm email" if you don't want that step. Social logins (Google, GitHub, …) can be added later by enabling a provider in Supabase and calling `supabase.auth.signInWithOAuth` in [src/contexts/AuthContext.tsx](src/contexts/AuthContext.tsx).

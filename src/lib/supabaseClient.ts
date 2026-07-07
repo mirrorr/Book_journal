@@ -9,14 +9,18 @@ let client: SupabaseClient | null = null;
 export function getSupabaseClient(): SupabaseClient {
   if (!client) {
     const url = import.meta.env.VITE_SUPABASE_URL;
-    const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-    if (!url || !anonKey) {
+    // Supabase's new API keys are named "publishable" (sb_publishable_...);
+    // older projects still use the legacy "anon" JWT. Accept either.
+    const key =
+      import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+      import.meta.env.VITE_SUPABASE_ANON_KEY;
+    if (!url || !key) {
       throw new Error(
-        'VITE_SUPABASE_URL ja VITE_SUPABASE_ANON_KEY puuttuvat. ' +
+        'VITE_SUPABASE_URL ja VITE_SUPABASE_PUBLISHABLE_KEY (tai VITE_SUPABASE_ANON_KEY) puuttuvat. ' +
           'Aseta ne .env-tiedostoon tai vaihda VITE_DATA_MODE=local.'
       );
     }
-    client = createClient(url, anonKey);
+    client = createClient(url, key);
   }
   return client;
 }
