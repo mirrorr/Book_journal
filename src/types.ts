@@ -54,6 +54,13 @@ export interface Recommendation {
   kirjoittaja: string;
   arvio: number;
   suosittelu_syy: string;
+  kansikuva_url: string;
+}
+
+/** User-submitted feedback: a bug report or an improvement/feature idea. */
+export interface FeedbackInput {
+  tyyppi: 'bugi' | 'idea';
+  viesti: string;
 }
 
 export const EMPTY_BOOK_INPUT: BookInput = {

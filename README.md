@@ -63,3 +63,7 @@ src/
 
 - **Lukulista**: add books you want to read; "Merkitse luetuksi" opens the journal form prefilled and removes the item once the entry is saved.
 - **Muut lukijat suosittelevat**: shows *only* the title, author, rating, and recommendation reason of entries other users marked as recommended (never their summaries, quotes, or reflections). Powered by the `recommendations` view in [supabase/schema.sql](supabase/schema.sql); local mode shows demo data. One click adds a recommendation to your own wish list.
+
+## Backup & feedback
+
+The footer has two panels: **Varmuuskopio** exports/imports the whole journal as JSON or CSV, and **Palaute** lets users submit bug reports and feature ideas. Feedback is stored in the write-only `feedback` table — read submissions in the Supabase Table Editor (`select * from feedback order by created_at desc`).

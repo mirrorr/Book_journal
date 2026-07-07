@@ -39,17 +39,20 @@ export const MOCK_RECOMMENDATIONS: Recommendation[] = [
     kirjoittaja: 'Tove Jansson',
     arvio: 5,
     suosittelu_syy: 'lyhyet luvut ja lämmin tunnelma, sopii hitaaseen lukemiseen',
+    kansikuva_url: '',
   },
   {
     kirjan_nimi: 'Tuntematon sotilas',
     kirjoittaja: 'Väinö Linna',
     arvio: 4,
     suosittelu_syy: 'klassikko, jonka hahmot jäävät mieleen pitkäksi aikaa',
+    kansikuva_url: '',
   },
   {
     kirjan_nimi: 'Koirien Kalevala',
     kirjoittaja: 'Mauri Kunnas',
     arvio: 4,
     suosittelu_syy: 'hauska tapa tutustua Kalevalan tarinoihin',
+    kansikuva_url: '',
   },
 ];

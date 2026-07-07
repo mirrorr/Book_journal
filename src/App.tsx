@@ -8,6 +8,7 @@ import JournalDetail from './components/JournalDetail';
 import DashboardStats from './components/DashboardStats';
 import AuthPage from './components/AuthPage';
 import BackupControls, { type ImportResult } from './components/BackupControls';
+import FeedbackDialog from './components/FeedbackDialog';
 import WishlistSection from './components/WishlistSection';
 import RecommendationsPanel, { recommendationKey } from './components/RecommendationsPanel';
 import { useAuth } from './contexts/AuthContext';
@@ -47,6 +48,7 @@ export default function App() {
   const [editingBook, setEditingBook] = useState<Book | null>(null);
   const [formPrefill, setFormPrefill] = useState<Partial<BookInput> | null>(null);
   const [pendingWishlistId, setPendingWishlistId] = useState<string | null>(null);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -246,10 +248,38 @@ export default function App() {
                   onRemove={handleRemoveWishlist}
                   onStartEntry={startEntryFromWishlist}
                 />
-                <div className="space-y-6">
-                  <BackupControls books={books} onImport={handleImport} />
-                  <JournalGrid books={books} onNewEntry={openNewForm} />
-                </div>
+                <JournalGrid books={books} onNewEntry={openNewForm} />
+
+                <footer className="grid gap-4 border-t border-ivory-300 pt-8 sm:grid-cols-2">
+                  <section
+                    aria-label="Varmuuskopio"
+                    className="rounded-2xl border border-ivory-300 bg-ivory-50 p-6 shadow-sm"
+                  >
+                    <h2 className="font-serif text-xl text-ink-900">Varmuuskopio</h2>
+                    <p className="mt-1 text-sm text-zinc-500">
+                      Vie koko päiväkirjasi talteen tiedostona tai palauta se varmuuskopiosta.
+                    </p>
+                    <div className="mt-4">
+                      <BackupControls books={books} onImport={handleImport} />
+                    </div>
+                  </section>
+
+                  <section
+                    aria-label="Palaute"
+                    className="rounded-2xl border border-ivory-300 bg-ivory-50 p-6 shadow-sm"
+                  >
+                    <h2 className="font-serif text-xl text-ink-900">Palaute</h2>
+                    <p className="mt-1 text-sm text-zinc-500">
+                      Löysitkö bugin tai onko sinulla idea uudesta ominaisuudesta?
+                    </p>
+                    <button
+                      onClick={() => setFeedbackOpen(true)}
+                      className="mt-4 rounded-full border border-sepia-300 bg-ivory-50 px-5 py-2 text-sm font-medium text-sepia-700 shadow-sm transition hover:border-sepia-500 hover:bg-sepia-100"
+                    >
+                      💬 Lähetä palautetta
+                    </button>
+                  </section>
+                </footer>
               </main>
             }
           />
@@ -275,6 +305,8 @@ export default function App() {
           onClose={closeForm}
         />
       )}
+
+      {feedbackOpen && <FeedbackDialog onClose={() => setFeedbackOpen(false)} />}
     </div>
   );
 }

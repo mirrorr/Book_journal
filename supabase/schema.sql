@@ -106,13 +106,18 @@ create policy "Users delete own wishlist"
 -- and reflections stay private.
 -- ---------------------------------------------------------------------------
 
-create or replace view public.recommendations
+-- Drop first: "create or replace" cannot reorder/insert columns on an
+-- existing view, which would break upgrades from the pre-cover version.
+drop view if exists public.recommendations;
+
+create view public.recommendations
 with (security_invoker = off) as
   select
     kirjan_nimi,
     kirjoittaja,
     arvio,
     suosittelu_syy,
+    kansikuva_url,
     created_at
   from public.books
   where suosittelen = true
@@ -120,6 +125,29 @@ with (security_invoker = off) as
 
 revoke all on public.recommendations from anon, public;
 grant select on public.recommendations to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- Feedback: bug reports and improvement ideas from users. Write-only for
+-- users (they can insert but not read others' feedback); read it yourself
+-- in the Supabase Table Editor or SQL Editor.
+-- ---------------------------------------------------------------------------
+
+create table if not exists public.feedback (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid default auth.uid()
+                references auth.users (id) on delete set null,
+  tyyppi      text not null check (tyyppi in ('bugi', 'idea')),
+  viesti      text not null check (char_length(viesti) between 1 and 4000),
+  created_at  timestamptz not null default now()
+);
+
+alter table public.feedback enable row level security;
+
+drop policy if exists "Users submit feedback" on public.feedback;
+create policy "Users submit feedback"
+  on public.feedback for insert
+  to authenticated
+  with check (auth.uid() = user_id);
 
 -- ---------------------------------------------------------------------------
 -- MIGRATION: run this instead if the old table (without user_id) already

@@ -51,6 +51,7 @@ export default function RecommendationsPanel({
               <BookCover
                 title={rec.kirjan_nimi}
                 author={rec.kirjoittaja}
+                url={rec.kansikuva_url}
                 sizeClasses="h-24 w-16"
               />
               <div className="flex min-w-0 flex-1 flex-col">

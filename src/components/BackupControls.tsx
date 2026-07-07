@@ -73,8 +73,7 @@ export default function BackupControls({ books, onImport }: BackupControlsProps)
   };
 
   return (
-    <div className="flex flex-wrap items-center justify-end gap-2" aria-label="Varmuuskopiointi">
-      <span className="mr-1 text-xs uppercase tracking-widest text-zinc-400">Varmuuskopio</span>
+    <div className="flex flex-wrap items-center gap-2" aria-label="Varmuuskopiointi">
       <button type="button" onClick={exportJson} disabled={busy || books.length === 0} className={buttonClasses}>
         <DownloadIcon />
         Vie JSON
@@ -97,7 +96,7 @@ export default function BackupControls({ books, onImport }: BackupControlsProps)
       {message && (
         <p
           role="status"
-          className={`w-full text-right text-xs ${isError ? 'text-red-600' : 'text-sepia-700'}`}
+          className={`w-full text-xs ${isError ? 'text-red-600' : 'text-sepia-700'}`}
         >
           {message}
         </p>

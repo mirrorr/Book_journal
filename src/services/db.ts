@@ -1,6 +1,7 @@
 import type {
   Book,
   BookInput,
+  FeedbackInput,
   Recommendation,
   WishlistInput,
   WishlistItem,
@@ -26,6 +27,8 @@ export interface DbAdapter {
   removeWishlist(id: string): Promise<void>;
   /** Safe-field recommendations from other users (mock data in local mode). */
   listRecommendations(): Promise<Recommendation[]>;
+  /** Submit a bug report or improvement idea. */
+  submitFeedback(input: FeedbackInput): Promise<void>;
 }
 
 /* ------------------------------------------------------------------ */
@@ -34,6 +37,7 @@ export interface DbAdapter {
 
 const STORAGE_KEY = 'lukupaivakirja.books.v1';
 const WISHLIST_KEY = 'lukupaivakirja.wishlist.v1';
+const FEEDBACK_KEY = 'lukupaivakirja.feedback.v1';
 const MOCK_LATENCY_MS = 350;
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -143,6 +147,19 @@ class LocalStorageAdapter implements DbAdapter {
     await delay(MOCK_LATENCY_MS);
     return MOCK_RECOMMENDATIONS;
   }
+
+  async submitFeedback(input: FeedbackInput): Promise<void> {
+    await delay(MOCK_LATENCY_MS);
+    const raw = localStorage.getItem(FEEDBACK_KEY);
+    let existing: unknown[] = [];
+    try {
+      existing = raw ? (JSON.parse(raw) as unknown[]) : [];
+    } catch {
+      existing = [];
+    }
+    existing.push({ ...input, created_at: new Date().toISOString() });
+    localStorage.setItem(FEEDBACK_KEY, JSON.stringify(existing));
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -222,11 +239,16 @@ class SupabaseAdapter implements DbAdapter {
     // users marked as recommended — never their private notes.
     const { data, error } = await getSupabaseClient()
       .from('recommendations')
-      .select('kirjan_nimi, kirjoittaja, arvio, suosittelu_syy')
+      .select('kirjan_nimi, kirjoittaja, arvio, suosittelu_syy, kansikuva_url')
       .order('created_at', { ascending: false })
       .limit(12);
     if (error) throw new Error(error.message);
     return (data ?? []) as Recommendation[];
+  }
+
+  async submitFeedback(input: FeedbackInput): Promise<void> {
+    const { error } = await getSupabaseClient().from('feedback').insert(input);
+    if (error) throw new Error(error.message);
   }
 }
 
