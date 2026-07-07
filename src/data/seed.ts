@@ -25,5 +25,6 @@ export const SEED_BOOKS: BookInput[] = [
     omat_ajatukset: 'Se es hyvää yrittää ymmärtää vanhemman lisää ja olla kiitollinen heille',
     suosittelen: true,
     suosittelu_syy: 'helppo ja erittäin hauska lukea',
+    kansikuva_url: '',
   },
 ];

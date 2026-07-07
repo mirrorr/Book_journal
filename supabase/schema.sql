@@ -22,6 +22,7 @@ create table if not exists public.books (
   omat_ajatukset    text not null default '',             -- Omat ajatukset (pohdinta)
   suosittelen       boolean not null default false,       -- Suosittelisinko?
   suosittelu_syy    text not null default '',
+  kansikuva_url     text not null default '',             -- Kansikuvan URL (tyhjä = oletuskansi)
   created_at        timestamptz not null default now()
 );
 
@@ -74,3 +75,6 @@ create policy "Users delete own books"
 -- alter table public.books alter column user_id set not null;
 -- create index if not exists books_user_id_idx on public.books (user_id);
 -- Then re-run the "drop policy / create policy" statements above.
+--
+-- If the table predates the cover-image feature, also run:
+-- alter table public.books add column if not exists kansikuva_url text not null default '';

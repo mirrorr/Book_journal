@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import type { Book, BookInput } from '../types';
 import { EMPTY_BOOK_INPUT } from '../types';
 import { StarPicker } from './StarRating';
+import BookCover from './BookCover';
 
 interface JournalFormProps {
   /** When provided, the form edits an existing entry; otherwise it creates a new one. */
@@ -38,7 +39,9 @@ export default function JournalForm({ book, onSubmit, onClose }: JournalFormProp
   useEffect(() => {
     if (book) {
       const { id: _id, created_at: _createdAt, ...input } = book;
-      setForm(input);
+      // Spread over the empty template so entries saved before newer fields
+      // existed (e.g. kansikuva_url) still yield fully controlled inputs.
+      setForm({ ...EMPTY_BOOK_INPUT, ...input });
     } else {
       setForm(EMPTY_BOOK_INPUT);
     }
@@ -70,14 +73,14 @@ export default function JournalForm({ book, onSubmit, onClose }: JournalFormProp
 
   return (
     <div
-      className="fixed inset-0 z-50 flex justify-end bg-sepia-900/40 backdrop-blur-sm"
+      className="animate-fade-in fixed inset-0 z-50 flex justify-end bg-sepia-900/40 backdrop-blur-sm"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-label={book ? 'Muokkaa merkintää' : 'Uusi merkintä'}
     >
       <aside
-        className="flex h-full w-full max-w-2xl flex-col bg-ivory-50 shadow-2xl"
+        className="animate-slide-in flex h-full w-full max-w-2xl flex-col bg-ivory-50 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <header className="flex items-center justify-between border-b border-ivory-300 px-8 py-5">
@@ -135,6 +138,30 @@ export default function JournalForm({ book, onSubmit, onClose }: JournalFormProp
             <Field label="Arvio">
               <StarPicker value={form.arvio} onChange={(v) => set('arvio', v)} />
             </Field>
+          </div>
+
+          <div className="flex items-start gap-5">
+            <div className="flex-1">
+              <Field label="Kansikuva (URL, valinnainen)">
+                <input
+                  type="url"
+                  className={inputClasses}
+                  value={form.kansikuva_url}
+                  onChange={(e) => set('kansikuva_url', e.target.value)}
+                  placeholder="https://…/kansi.jpg"
+                />
+              </Field>
+              <p className="mt-1.5 text-xs text-zinc-400">
+                Jos jätät tyhjäksi, kirjalle piirretään tyylikäs oletuskansi.
+              </p>
+            </div>
+            <BookCover
+              title={form.kirjan_nimi}
+              author={form.kirjoittaja}
+              url={form.kansikuva_url}
+              sizeClasses="h-28 w-20"
+              className="mt-1"
+            />
           </div>
 
           <Field label="Yhteenveto">

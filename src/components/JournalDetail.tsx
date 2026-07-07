@@ -1,6 +1,7 @@
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import type { Book } from '../types';
 import { StarDisplay } from './StarRating';
+import BookCover from './BookCover';
 import { formatFinnishDate } from '../lib/format';
 
 interface JournalDetailProps {
@@ -60,7 +61,7 @@ export default function JournalDetail({ books, loading, onEdit, onDelete }: Jour
   };
 
   return (
-    <article className="mx-auto max-w-3xl">
+    <article className="animate-rise mx-auto max-w-3xl">
       <div className="mb-8 flex items-center justify-between">
         <Link
           to="/"
@@ -88,6 +89,15 @@ export default function JournalDetail({ books, loading, onEdit, onDelete }: Jour
       </div>
 
       <header className="border-b border-ivory-300 pb-8 text-center">
+        <div className="book-perspective mb-6 flex justify-center">
+          <BookCover
+            title={book.kirjan_nimi}
+            author={book.kirjoittaja}
+            url={book.kansikuva_url}
+            sizeClasses="h-64 w-44"
+            className="book-cover-hover shadow-xl"
+          />
+        </div>
         <StarDisplay value={book.arvio} className="justify-center" starClassName="h-6 w-6" />
         <h1 className="mt-4 font-serif text-5xl leading-tight text-ink-900">{book.kirjan_nimi}</h1>
         <p className="mt-3 text-lg font-medium tracking-wide text-sepia-700">{book.kirjoittaja}</p>

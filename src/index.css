@@ -31,3 +31,86 @@ body {
   background-color: var(--color-sepia-300);
   color: var(--color-sepia-900);
 }
+
+/* ------------------------------------------------------------------ */
+/* Animations                                                          */
+/* ------------------------------------------------------------------ */
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Staggered entrance for cards and views (delay set inline per card). */
+.animate-rise {
+  animation: rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Journal form panel sliding in from the right. */
+.animate-slide-in {
+  animation: slide-in-right 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out both;
+}
+
+/* 3D "book pick-up" tilt: parent supplies perspective, cover rotates open. */
+.book-perspective {
+  perspective: 900px;
+}
+
+.book-cover {
+  transform-style: preserve-3d;
+  transform-origin: left center;
+  transition:
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.45s ease;
+}
+
+.group:hover .book-cover,
+.book-cover-hover:hover {
+  transform: rotateY(-18deg) translateY(-4px);
+  box-shadow:
+    12px 14px 24px -10px rgba(76, 58, 38, 0.45),
+    2px 4px 8px rgba(76, 58, 38, 0.2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-rise,
+  .animate-slide-in,
+  .animate-fade-in {
+    animation-duration: 0.01ms;
+    animation-delay: 0ms !important;
+  }
+  .book-cover,
+  .group:hover .book-cover,
+  .book-cover-hover:hover {
+    transition: none;
+    transform: none;
+  }
+}

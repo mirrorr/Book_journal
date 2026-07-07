@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import type { Book } from '../types';
 import { StarDisplay } from './StarRating';
+import BookCover from './BookCover';
 import { formatFinnishDate } from '../lib/format';
 
 interface JournalGridProps {
@@ -29,11 +30,12 @@ export default function JournalGrid({ books, onNewEntry }: JournalGridProps) {
   return (
     <section aria-label="Luetut kirjat">
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {books.map((book) => (
+        {books.map((book, index) => (
           <Link
             key={book.id}
             to={`/kirja/${book.id}`}
-            className="group flex flex-col rounded-2xl border border-ivory-300 bg-ivory-50 p-6 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-sepia-300 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-sepia-500"
+            style={{ animationDelay: `${Math.min(index, 8) * 70}ms` }}
+            className="group animate-rise book-perspective flex flex-col rounded-2xl border border-ivory-300 bg-ivory-50 p-6 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-sepia-300 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-sepia-500"
           >
             <div className="flex items-start justify-between gap-3">
               <StarDisplay value={book.arvio} starClassName="h-4 w-4" />
@@ -44,12 +46,22 @@ export default function JournalGrid({ books, onNewEntry }: JournalGridProps) {
               )}
             </div>
 
-            <h3 className="mt-4 font-serif text-2xl leading-snug text-ink-900 group-hover:text-sepia-900">
-              {book.kirjan_nimi}
-            </h3>
-            <p className="mt-1 text-sm font-medium tracking-wide text-sepia-700">
-              {book.kirjoittaja}
-            </p>
+            <div className="mt-4 flex items-start gap-4">
+              <BookCover
+                title={book.kirjan_nimi}
+                author={book.kirjoittaja}
+                url={book.kansikuva_url}
+                sizeClasses="h-28 w-20"
+              />
+              <div className="min-w-0">
+                <h3 className="font-serif text-2xl leading-snug text-ink-900 group-hover:text-sepia-900">
+                  {book.kirjan_nimi}
+                </h3>
+                <p className="mt-1 text-sm font-medium tracking-wide text-sepia-700">
+                  {book.kirjoittaja}
+                </p>
+              </div>
+            </div>
 
             <p className="mt-4 line-clamp-3 flex-1 text-sm leading-relaxed text-zinc-600">
               {book.yhteenveto}

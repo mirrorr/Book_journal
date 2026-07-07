@@ -25,6 +25,8 @@ export interface Book {
   suosittelen: boolean;
   /** Miksi suosittelen / en suosittele */
   suosittelu_syy: string;
+  /** Kansikuvan URL-osoite (tyhjä = näytetään oletuskansi) */
+  kansikuva_url: string;
   created_at: string;
 }
 
@@ -44,4 +46,5 @@ export const EMPTY_BOOK_INPUT: BookInput = {
   omat_ajatukset: '',
   suosittelen: true,
   suosittelu_syy: '',
+  kansikuva_url: '',
 };
