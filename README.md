@@ -1,6 +1,8 @@
-# Lukupäiväkirja 📖
+# Lukumaku 📖
 
-Henkilökohtainen kirjapäiväkirja — a personal book journal built with React (Vite), TypeScript, Tailwind CSS v4, and an adapter-based data layer that runs against either LocalStorage or Supabase.
+*Jokainen kirja on makuasia.* A personal book journal (lukupäiväkirja) built with React (Vite), TypeScript, Tailwind CSS v4, and an adapter-based data layer that runs against either LocalStorage or Supabase.
+
+Brand assets live in [public/](public/): the wordmark SVG is also inlined as a React component ([src/components/Logo.tsx](src/components/Logo.tsx)) using Spectral 600, which is loaded via Google Fonts in [index.html](index.html). Favicons use the PNG exports.
 
 ## Quick start
 

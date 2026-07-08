@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import Wordmark from './Logo';
 
 type AuthMode = 'login' | 'register';
 
@@ -54,7 +55,10 @@ export default function AuthPage() {
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-sepia-500">
             Tervetuloa
           </p>
-          <h1 className="mt-1 font-serif text-5xl text-ink-900">Lukupäiväkirja</h1>
+          <h1 className="mt-3 flex justify-center">
+            <Wordmark className="h-12 w-auto text-ink-900" />
+          </h1>
+          <p className="mt-2 font-serif italic text-zinc-500">Jokainen kirja on makuasia.</p>
           <p className="mt-3 text-zinc-500">
             Kirjaudu sisään lukeaksesi ja kirjoittaaksesi omaa päiväkirjaasi.
           </p>

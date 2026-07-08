@@ -42,10 +42,10 @@ export default function BackupControls({ books, onImport }: BackupControlsProps)
   const stamp = new Date().toISOString().slice(0, 10);
 
   const exportJson = () =>
-    downloadFile(`lukupaivakirja-${stamp}.json`, booksToJson(books), 'application/json');
+    downloadFile(`lukumaku-${stamp}.json`, booksToJson(books), 'application/json');
 
   const exportCsv = () =>
-    downloadFile(`lukupaivakirja-${stamp}.csv`, booksToCsv(books), 'text/csv');
+    downloadFile(`lukumaku-${stamp}.csv`, booksToCsv(books), 'text/csv');
 
   const handleFile = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

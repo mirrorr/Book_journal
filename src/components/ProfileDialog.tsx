@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import type { Profile } from '../types';
 import { hasExtendedFeatures } from '../types';
+import Wordmark from './Logo';
 
 interface ProfileDialogProps {
   /** Existing profile to edit, or null when creating one. */
@@ -263,7 +264,9 @@ export default function ProfileDialog({
             <p className="text-xs font-semibold uppercase tracking-[0.25em] text-sepia-500">
               Tervetuloa
             </p>
-            <h1 className="mt-1 font-serif text-5xl text-ink-900">Lukupäiväkirja</h1>
+            <h1 className="mt-3 flex justify-center">
+              <Wordmark className="h-12 w-auto text-ink-900" />
+            </h1>
           </header>
           {card}
         </div>

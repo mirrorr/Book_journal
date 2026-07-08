@@ -17,6 +17,7 @@ import DashboardStats from './components/DashboardStats';
 import AuthPage from './components/AuthPage';
 import BackupControls, { type ImportResult } from './components/BackupControls';
 import CommunitiesSection from './components/CommunitiesSection';
+import Wordmark from './components/Logo';
 import FeedbackDialog from './components/FeedbackDialog';
 import ProfileDialog from './components/ProfileDialog';
 import ScoreboardPanel from './components/ScoreboardPanel';
@@ -231,9 +232,11 @@ export default function App() {
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-sepia-500">
             {DATA_MODE === 'local' ? 'Paikallinen tila' : 'Oma kirjahylly'}
           </p>
-          <h1 className="mt-1 font-serif text-5xl text-ink-900">Lukupäiväkirja</h1>
-          <p className="mt-2 max-w-xl text-zinc-500">
-            Henkilökohtainen muistikirja luetuista kirjoista, ajatuksista ja opeista.
+          <h1 className="mt-2">
+            <Wordmark className="h-12 w-auto text-ink-900 sm:h-14" />
+          </h1>
+          <p className="mt-2 max-w-xl font-serif italic text-zinc-500">
+            Jokainen kirja on makuasia.
           </p>
         </div>
         <div className="flex flex-col items-end gap-2">
