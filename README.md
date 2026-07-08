@@ -66,6 +66,10 @@ src/
 - **Lukulista**: add books you want to read; "Merkitse luetuksi" opens the journal form prefilled and removes the item once the entry is saved.
 - **Muut lukijat suosittelevat**: shows *only* the title, author, rating, and recommendation reason of entries other users marked as recommended (never their summaries, quotes, or reflections). Powered by the `recommendations` view in [supabase/schema.sql](supabase/schema.sql); local mode shows demo data. One click adds a recommendation to your own wish list.
 
+## Languages
+
+The UI is available in Finnish and English; the flag switcher lives in the header (and on the login/setup screens). The choice persists in the browser and defaults to the browser language on first visit; dates follow the active locale. To add a language: create `src/i18n/<code>.ts` typed as `Dict` (the compiler enforces full coverage against the Finnish source dictionary in [src/i18n/fi.ts](src/i18n/fi.ts)) and add one entry to `LANGUAGES` in [src/i18n/index.tsx](src/i18n/index.tsx). The app name "Lukumaku" is the same in every language.
+
 ## Basic vs. extended features
 
 By default the app shows only the basics: journal, wish list, recommendations, backup, and feedback. The extended features — reading goal, scoreboard, and reading circles — are opt-in: switch the profile (👤 in the header) to **Laajennettu** and pick the ones you want, individually. Switching back to **Perus** turns them all off (including scoreboard visibility to others).

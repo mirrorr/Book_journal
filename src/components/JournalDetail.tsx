@@ -2,7 +2,8 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import type { Book } from '../types';
 import { StarDisplay } from './StarRating';
 import BookCover from './BookCover';
-import { formatFinnishDate } from '../lib/format';
+import { formatDate } from '../lib/format';
+import { useI18n } from '../i18n';
 
 interface JournalDetailProps {
   books: Book[];
@@ -27,6 +28,7 @@ function Section({ title, children, className = '' }: SectionProps) {
 }
 
 export default function JournalDetail({ books, loading, onEdit, onDelete }: JournalDetailProps) {
+  const { t, locale } = useI18n();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const book = books.find((b) => b.id === id);
@@ -34,7 +36,7 @@ export default function JournalDetail({ books, loading, onEdit, onDelete }: Jour
   if (loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <p className="animate-pulse font-serif text-xl text-sepia-500">Avataan merkintää…</p>
+        <p className="animate-pulse font-serif text-xl text-sepia-500">{t.detail.opening}</p>
       </div>
     );
   }
@@ -42,20 +44,20 @@ export default function JournalDetail({ books, loading, onEdit, onDelete }: Jour
   if (!book) {
     return (
       <div className="mx-auto max-w-xl py-24 text-center">
-        <p className="font-serif text-3xl text-sepia-700">Merkintää ei löytynyt</p>
-        <p className="mt-2 text-zinc-500">Se on ehkä poistettu, tai linkki on vanhentunut.</p>
+        <p className="font-serif text-3xl text-sepia-700">{t.detail.notFoundTitle}</p>
+        <p className="mt-2 text-zinc-500">{t.detail.notFoundBody}</p>
         <Link
           to="/"
           className="mt-6 inline-block rounded-full bg-sepia-700 px-6 py-2.5 text-sm font-medium text-ivory-50 transition hover:bg-sepia-900"
         >
-          ← Takaisin päiväkirjaan
+          ← {t.detail.backToJournal}
         </Link>
       </div>
     );
   }
 
   const handleDelete = async () => {
-    if (!window.confirm(`Poistetaanko merkintä ”${book.kirjan_nimi}”? Tätä ei voi perua.`)) return;
+    if (!window.confirm(t.detail.deleteConfirm(book.kirjan_nimi))) return;
     await onDelete(book.id);
     navigate('/');
   };
@@ -70,20 +72,20 @@ export default function JournalDetail({ books, loading, onEdit, onDelete }: Jour
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="h-4 w-4" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
           </svg>
-          Takaisin päiväkirjaan
+          {t.detail.backToJournal}
         </Link>
         <div className="flex gap-2">
           <button
             onClick={() => onEdit(book)}
             className="rounded-full border border-sepia-300 px-5 py-2 text-sm font-medium text-sepia-700 transition hover:bg-sepia-100"
           >
-            Muokkaa
+            {t.detail.edit}
           </button>
           <button
             onClick={handleDelete}
             className="rounded-full border border-red-200 px-5 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
           >
-            Poista
+            {t.detail.remove}
           </button>
         </div>
       </div>
@@ -102,7 +104,7 @@ export default function JournalDetail({ books, loading, onEdit, onDelete }: Jour
         <h1 className="mt-4 font-serif text-5xl leading-tight text-ink-900">{book.kirjan_nimi}</h1>
         <p className="mt-3 text-lg font-medium tracking-wide text-sepia-700">{book.kirjoittaja}</p>
         <p className="mt-2 text-sm text-zinc-500">
-          Luettu valmiiksi {formatFinnishDate(book.valmistumispaiva)}
+          {t.detail.finishedOn(formatDate(book.valmistumispaiva, locale))}
         </p>
       </header>
 
@@ -123,13 +125,13 @@ export default function JournalDetail({ books, loading, onEdit, onDelete }: Jour
         )}
 
         {book.yhteenveto && (
-          <Section title="Yhteenveto">
+          <Section title={t.detail.summary}>
             <p>{book.yhteenveto}</p>
           </Section>
         )}
 
         {book.tarkein_oppi && (
-          <Section title="Tärkein ajatus / oppi">
+          <Section title={t.detail.keyLesson}>
             <p className="rounded-2xl border border-sepia-300 bg-sepia-100/60 px-6 py-5 font-serif text-lg text-sepia-900">
               {book.tarkein_oppi}
             </p>
@@ -138,24 +140,24 @@ export default function JournalDetail({ books, loading, onEdit, onDelete }: Jour
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div className="rounded-2xl border border-ivory-300 bg-ivory-50 p-6">
-            <Section title="Mistä pidin">
+            <Section title={t.detail.liked}>
               <p>{book.mista_pidin || '–'}</p>
             </Section>
           </div>
           <div className="rounded-2xl border border-ivory-300 bg-ivory-50 p-6">
-            <Section title="Mistä en pitänyt">
+            <Section title={t.detail.disliked}>
               <p>{book.mista_en_pitanyt || '–'}</p>
             </Section>
           </div>
         </div>
 
         {book.omat_ajatukset && (
-          <Section title="Omat ajatukset (pohdinta)">
+          <Section title={t.detail.reflections}>
             <p>{book.omat_ajatukset}</p>
           </Section>
         )}
 
-        <Section title="Suosittelisinko?">
+        <Section title={t.detail.recommendQuestion}>
           <div className="flex items-center gap-3">
             <span
               className={`rounded-full px-4 py-1.5 text-sm font-semibold ${
@@ -164,7 +166,7 @@ export default function JournalDetail({ books, loading, onEdit, onDelete }: Jour
                   : 'bg-zinc-100 text-zinc-600'
               }`}
             >
-              {book.suosittelen ? 'Kyllä, suosittelen' : 'En suosittelisi'}
+              {book.suosittelen ? t.detail.recommendYes : t.detail.recommendNo}
             </span>
             {book.suosittelu_syy && <span className="text-zinc-600">– {book.suosittelu_syy}</span>}
           </div>

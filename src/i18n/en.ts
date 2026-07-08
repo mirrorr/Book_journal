@@ -1,0 +1,257 @@
+import type { Dict } from './fi';
+
+/** English. Type-checked against the Finnish source dictionary. */
+const en: Dict = {
+  tagline: 'Every book is a matter of taste.',
+
+  common: {
+    cancel: 'Cancel',
+    save: 'Save',
+    saving: 'Saving…',
+    close: 'Close',
+    retry: 'Try again',
+    loadingShort: 'Loading…',
+  },
+
+  header: {
+    localMode: 'Local mode',
+    cloudMode: 'My bookshelf',
+    newEntry: '+ New entry',
+    profile: 'Profile',
+    logout: 'Sign out',
+  },
+
+  app: {
+    loading: 'Opening your journal…',
+    errorTitle: 'Something went wrong',
+    loadFailed: 'Loading your data failed.',
+    recommendedNote: (reason: string) => `Recommended: “${reason}”`,
+  },
+
+  footer: {
+    backupTitle: 'Backup',
+    backupDesc: 'Export your whole journal to a file, or restore it from a backup.',
+    feedbackTitle: 'Feedback',
+    feedbackDesc: 'Found a bug, or have an idea for a new feature?',
+    feedbackButton: '💬 Send feedback',
+  },
+
+  grid: {
+    ariaLabel: 'Books read',
+    emptyTitle: 'Your journal is still empty',
+    emptyBody: 'When you finish a book, write your thoughts down here.',
+    addFirst: '+ Add your first book',
+    recommendBadge: 'Recommended',
+    readOn: (date: string) => `Read ${date}`,
+  },
+
+  form: {
+    editTitle: 'Edit entry',
+    newTitle: 'New entry',
+    subtitle: 'Write down your thoughts about the book you just read.',
+    bookName: 'Book title *',
+    bookNamePlaceholder: 'e.g. The Summer Book',
+    author: 'Author *',
+    authorPlaceholder: 'e.g. Tove Jansson',
+    finishedDate: 'Date I finished the book',
+    rating: 'Rating',
+    cover: 'Cover image (URL, optional)',
+    coverPlaceholder: 'https://…/cover.jpg',
+    coverFailed:
+      'The image could not be loaded — check that the address is a direct link to an image file (e.g. ends in .jpg or .png).',
+    coverHint: 'Leave empty and the book gets an elegant default cover.',
+    summary: 'Summary',
+    summaryPlaceholder: 'What was the book about?',
+    keyLesson: 'Key thought / lesson',
+    keyLessonPlaceholder: 'What stayed with you the most?',
+    liked: 'What I liked',
+    disliked: "What I didn't like",
+    quote: 'Favorite quote',
+    quotePlaceholder: '“…”',
+    reflections: 'My reflections',
+    recommendQuestion: 'Would I recommend it?',
+    yes: 'Yes',
+    no: 'No',
+    whyRecommend: 'Why would I recommend it?',
+    whyNotRecommend: "Why wouldn't I recommend it?",
+    whyPlaceholder: 'e.g. easy and very fun to read',
+    saveFailed: 'Saving failed.',
+    saveChanges: 'Save changes',
+    addToJournal: 'Add to journal',
+  },
+
+  detail: {
+    opening: 'Opening the entry…',
+    notFoundTitle: 'Entry not found',
+    notFoundBody: 'It may have been deleted, or the link is out of date.',
+    backToJournal: 'Back to journal',
+    edit: 'Edit',
+    remove: 'Delete',
+    deleteConfirm: (title: string) => `Delete the entry “${title}”? This cannot be undone.`,
+    finishedOn: (date: string) => `Finished on ${date}`,
+    summary: 'Summary',
+    keyLesson: 'Key thought / lesson',
+    liked: 'What I liked',
+    disliked: "What I didn't like",
+    reflections: 'My reflections',
+    recommendQuestion: 'Would I recommend it?',
+    recommendYes: 'Yes, I recommend it',
+    recommendNo: "I wouldn't recommend it",
+  },
+
+  stats: {
+    ariaLabel: 'Reading statistics',
+    booksRead: 'Books read',
+    booksReadSub: 'total in the journal',
+    average: 'Average rating',
+    averageSub: 'across all ratings',
+    wouldRecommend: 'Would recommend',
+    wouldRecommendSub: 'books to others',
+    history: 'Reading history',
+    goalTitle: (year: string) => `Reading goal ${year}`,
+    goalReached: 'Goal reached — well done! 🎉',
+    goalRemaining: (n: number) => `${n} ${n === 1 ? 'book' : 'books'} to go`,
+  },
+
+  stars: {
+    ratingLabel: (value: number) => `Rating ${value} / 5`,
+    pickLabel: 'Rating',
+    starsLabel: (n: number) => `${n} ${n === 1 ? 'star' : 'stars'}`,
+  },
+
+  auth: {
+    welcome: 'Welcome',
+    prompt: 'Sign in to read and write your own journal.',
+    login: 'Sign in',
+    register: 'Create account',
+    email: 'Email',
+    emailPlaceholder: 'name@example.com',
+    password: 'Password',
+    passwordPlaceholder: 'At least 6 characters',
+    registered: 'Account created! Check your email and confirm your address, then sign in.',
+    wait: 'One moment…',
+    authFailed: 'Authentication failed.',
+    privacyNote: 'Every user sees only their own entries.',
+  },
+
+  profile: {
+    createTitle: 'Create profile',
+    editTitle: 'Profile',
+    createSubtitle: 'One more step: pick a username. You can change settings later.',
+    editSubtitle: 'Username and enabled features.',
+    username: 'Username',
+    usernamePlaceholder: 'e.g. BookishLisa',
+    usernameHint: 'Shown to others only in community features. 3–20 characters.',
+    usernameRule: '3–20 characters: letters, numbers, and underscores',
+    features: 'Features',
+    basic: 'Basic',
+    extended: 'Extended',
+    basicHint: 'Basic mode includes the journal, reading list, and recommendations.',
+    extendedHint: 'Choose below which extra features to enable.',
+    goalTitle: 'Reading goal (books per year)',
+    goalHint: 'Shows a progress bar on the front page. 0 = no goal.',
+    scoreboardTitle: 'Scoreboard',
+    scoreboardDesc: 'Show the most active readers on the front page.',
+    showMe: 'Show me on the scoreboard',
+    showMeDesc:
+      'Others see only your username and book count — never the contents of your journal.',
+    circlesTitle: 'Reading circles',
+    circlesDesc:
+      "Read together: start a circle or join with an invite code, and follow each other's reading.",
+    saveFailed: 'Saving failed.',
+    start: 'Start your journal',
+  },
+
+  scoreboard: {
+    title: 'Scoreboard',
+    subtitle: 'Most active readers',
+    thisMonth: 'This month',
+    allTime: 'All time',
+    empty: 'No readers on the scoreboard yet.',
+    you: '(you)',
+    books: (n: number) => `${n} ${n === 1 ? 'book' : 'books'}`,
+    notOnBoard: "You're not on the scoreboard yet.",
+    joinLink: 'Join from your profile',
+    joinNote: '— only your username and book count are visible to others.',
+  },
+
+  circles: {
+    title: 'Reading circles',
+    subtitle: "Read together — circle members see each other's usernames and book counts",
+    localNote: 'Reading circles are available only when signed in.',
+    members: (n: number) => `${n} ${n === 1 ? 'member' : 'members'}`,
+    inviteCode: 'Invite code:',
+    copy: 'Copy',
+    copied: 'Copied ✓',
+    leave: 'Leave circle',
+    leaveConfirm: (name: string) => `Leave the reading circle “${name}”?`,
+    noMembers: 'No members yet.',
+    reader: 'Reader',
+    thisMonth: 'This month',
+    total: 'Total',
+    newCircleName: 'New circle name',
+    create: 'Create',
+    codePlaceholder: 'Invite code',
+    join: 'Join',
+    empty: "You're not in any reading circle yet. Start your own or join with a friend's code.",
+    actionFailed: 'The action failed.',
+  },
+
+  wishlist: {
+    title: 'Reading list',
+    subtitle: 'Books you want to read next',
+    namePlaceholder: 'Book title',
+    authorPlaceholder: 'Author (optional)',
+    add: '+ Add to list',
+    adding: 'Adding…',
+    addFailed: 'Adding failed.',
+    empty: 'Your reading list is empty — add a book you want to read someday.',
+    markRead: 'Mark as read',
+    removeAria: (title: string) => `Remove ${title} from the reading list`,
+  },
+
+  recs: {
+    title: 'Other readers recommend',
+    subtitle: 'Only the book, rating, and reason — nothing more',
+    alreadyListed: '✓ Already on your list',
+    adding: 'Adding…',
+    addToList: '+ To reading list',
+  },
+
+  feedback: {
+    title: 'Send feedback',
+    subtitle: 'Found a bug or thought of an improvement? Tell us.',
+    bug: '🐛 Bug',
+    idea: '💡 Idea',
+    bugQuestion: 'What went wrong?',
+    ideaQuestion: 'What would make the app better?',
+    bugPlaceholder: 'Describe what you did and what happened…',
+    ideaPlaceholder: 'Describe your idea and how it would help…',
+    thanksTitle: 'Thanks for the feedback! 🎉',
+    thanksBug: 'Your bug report has been saved and will be looked into.',
+    thanksIdea: 'Your idea has been saved — good suggestions end up in the app.',
+    send: 'Send',
+    sending: 'Sending…',
+    sendFailed: 'Sending failed.',
+  },
+
+  backup: {
+    exportJson: 'Export JSON',
+    exportCsv: 'Export CSV',
+    importFile: 'Import file',
+    importing: 'Importing…',
+    importFailed: 'Import failed.',
+    nothingNew: (skipped: number) =>
+      `No new entries — all ${skipped} were already in the journal.`,
+    imported: (added: number, skipped: number) =>
+      `Imported ${added} ${added === 1 ? 'entry' : 'entries'}${
+        skipped > 0 ? `, skipped ${skipped} already existing` : ''
+      }.`,
+  },
+
+  cover: {
+    untitled: 'Untitled',
+  },
+};
+
+export default en;

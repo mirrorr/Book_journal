@@ -4,6 +4,7 @@ import { EMPTY_BOOK_INPUT } from '../types';
 import { StarPicker } from './StarRating';
 import BookCover from './BookCover';
 import BookSearchInput from './BookSearchInput';
+import { useI18n } from '../i18n';
 
 interface JournalFormProps {
   /** When provided, the form edits an existing entry; otherwise it creates a new one. */
@@ -35,6 +36,7 @@ const inputClasses =
 const textareaClasses = `${inputClasses} min-h-28 resize-y leading-relaxed`;
 
 export default function JournalForm({ book, initial, onSubmit, onClose }: JournalFormProps) {
+  const { t } = useI18n();
   const [form, setForm] = useState<BookInput>(EMPTY_BOOK_INPUT);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -70,7 +72,7 @@ export default function JournalForm({ book, initial, onSubmit, onClose }: Journa
     try {
       await onSubmit(form);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Tallennus epäonnistui.');
+      setError(err instanceof Error ? err.message : t.form.saveFailed);
       setSaving(false);
     }
   };
@@ -81,7 +83,7 @@ export default function JournalForm({ book, initial, onSubmit, onClose }: Journa
       onClick={onClose}
       role="dialog"
       aria-modal="true"
-      aria-label={book ? 'Muokkaa merkintää' : 'Uusi merkintä'}
+      aria-label={book ? t.form.editTitle : t.form.newTitle}
     >
       <aside
         className="animate-slide-in flex h-full w-full max-w-2xl flex-col bg-ivory-50 shadow-2xl"
@@ -90,16 +92,14 @@ export default function JournalForm({ book, initial, onSubmit, onClose }: Journa
         <header className="flex items-center justify-between border-b border-ivory-300 px-8 py-5">
           <div>
             <h2 className="font-serif text-3xl text-ink-900">
-              {book ? 'Muokkaa merkintää' : 'Uusi merkintä'}
+              {book ? t.form.editTitle : t.form.newTitle}
             </h2>
-            <p className="mt-0.5 text-sm text-zinc-500">
-              Kirjaa ajatuksesi juuri lukemastasi kirjasta.
-            </p>
+            <p className="mt-0.5 text-sm text-zinc-500">{t.form.subtitle}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Sulje"
+            aria-label={t.common.close}
             className="rounded-full p-2 text-zinc-500 transition hover:bg-ivory-200 hover:text-zinc-800"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="h-6 w-6">
@@ -110,7 +110,7 @@ export default function JournalForm({ book, initial, onSubmit, onClose }: Journa
 
         <form onSubmit={handleSubmit} className="flex-1 space-y-6 overflow-y-auto px-8 py-6">
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <Field label="Kirjan nimi *">
+            <Field label={t.form.bookName}>
               <BookSearchInput
                 required
                 className={inputClasses}
@@ -125,22 +125,22 @@ export default function JournalForm({ book, initial, onSubmit, onClose }: Journa
                   }));
                   setCoverFailed(false);
                 }}
-                placeholder="esim. Juurihoito"
+                placeholder={t.form.bookNamePlaceholder}
               />
             </Field>
-            <Field label="Kirjoittaja *">
+            <Field label={t.form.author}>
               <input
                 required
                 className={inputClasses}
                 value={form.kirjoittaja}
                 onChange={(e) => set('kirjoittaja', e.target.value)}
-                placeholder="esim. Miika Nousiainen"
+                placeholder={t.form.authorPlaceholder}
               />
             </Field>
           </div>
 
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <Field label="Päivä, jolloin sain kirjan valmiiksi">
+            <Field label={t.form.finishedDate}>
               <input
                 type="date"
                 className={inputClasses}
@@ -148,14 +148,14 @@ export default function JournalForm({ book, initial, onSubmit, onClose }: Journa
                 onChange={(e) => set('valmistumispaiva', e.target.value)}
               />
             </Field>
-            <Field label="Arvio">
+            <Field label={t.form.rating}>
               <StarPicker value={form.arvio} onChange={(v) => set('arvio', v)} />
             </Field>
           </div>
 
           <div className="flex items-start gap-5">
             <div className="flex-1">
-              <Field label="Kansikuva (URL, valinnainen)">
+              <Field label={t.form.cover}>
                 <input
                   type="url"
                   className={inputClasses}
@@ -164,18 +164,13 @@ export default function JournalForm({ book, initial, onSubmit, onClose }: Journa
                     set('kansikuva_url', e.target.value);
                     setCoverFailed(false);
                   }}
-                  placeholder="https://…/kansi.jpg"
+                  placeholder={t.form.coverPlaceholder}
                 />
               </Field>
               {form.kansikuva_url && coverFailed ? (
-                <p className="mt-1.5 text-xs text-red-600">
-                  Kuvaa ei voitu ladata — tarkista, että osoite on suora linkki
-                  kuvatiedostoon (esim. päättyy .jpg tai .png).
-                </p>
+                <p className="mt-1.5 text-xs text-red-600">{t.form.coverFailed}</p>
               ) : (
-                <p className="mt-1.5 text-xs text-zinc-400">
-                  Jos jätät tyhjäksi, kirjalle piirretään tyylikäs oletuskansi.
-                </p>
+                <p className="mt-1.5 text-xs text-zinc-400">{t.form.coverHint}</p>
               )}
             </div>
             <BookCover
@@ -188,33 +183,33 @@ export default function JournalForm({ book, initial, onSubmit, onClose }: Journa
             />
           </div>
 
-          <Field label="Yhteenveto">
+          <Field label={t.form.summary}>
             <textarea
               className={textareaClasses}
               value={form.yhteenveto}
               onChange={(e) => set('yhteenveto', e.target.value)}
-              placeholder="Mistä kirja kertoi?"
+              placeholder={t.form.summaryPlaceholder}
             />
           </Field>
 
-          <Field label="Tärkein ajatus / oppi">
+          <Field label={t.form.keyLesson}>
             <textarea
               className={textareaClasses}
               value={form.tarkein_oppi}
               onChange={(e) => set('tarkein_oppi', e.target.value)}
-              placeholder="Mikä jäi mieleen tärkeimpänä?"
+              placeholder={t.form.keyLessonPlaceholder}
             />
           </Field>
 
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <Field label="Mistä pidin">
+            <Field label={t.form.liked}>
               <textarea
                 className={textareaClasses}
                 value={form.mista_pidin}
                 onChange={(e) => set('mista_pidin', e.target.value)}
               />
             </Field>
-            <Field label="Mistä en pitänyt">
+            <Field label={t.form.disliked}>
               <textarea
                 className={textareaClasses}
                 value={form.mista_en_pitanyt}
@@ -223,16 +218,16 @@ export default function JournalForm({ book, initial, onSubmit, onClose }: Journa
             </Field>
           </div>
 
-          <Field label="Lempilainaus">
+          <Field label={t.form.quote}>
             <textarea
               className={`${textareaClasses} font-serif italic`}
               value={form.lempilainaus}
               onChange={(e) => set('lempilainaus', e.target.value)}
-              placeholder="”…”"
+              placeholder={t.form.quotePlaceholder}
             />
           </Field>
 
-          <Field label="Omat ajatukset (pohdinta)">
+          <Field label={t.form.reflections}>
             <textarea
               className={textareaClasses}
               value={form.omat_ajatukset}
@@ -241,7 +236,9 @@ export default function JournalForm({ book, initial, onSubmit, onClose }: Journa
           </Field>
 
           <fieldset>
-            <legend className="mb-2 text-sm font-semibold text-sepia-900">Suosittelisinko?</legend>
+            <legend className="mb-2 text-sm font-semibold text-sepia-900">
+              {t.form.recommendQuestion}
+            </legend>
             <div className="inline-flex rounded-full border border-ivory-300 bg-white p-1 shadow-sm">
               <button
                 type="button"
@@ -253,7 +250,7 @@ export default function JournalForm({ book, initial, onSubmit, onClose }: Journa
                     : 'text-zinc-500 hover:text-sepia-700'
                 }`}
               >
-                Kyllä
+                {t.form.yes}
               </button>
               <button
                 type="button"
@@ -265,17 +262,17 @@ export default function JournalForm({ book, initial, onSubmit, onClose }: Journa
                     : 'text-zinc-500 hover:text-zinc-800'
                 }`}
               >
-                En
+                {t.form.no}
               </button>
             </div>
           </fieldset>
 
-          <Field label={form.suosittelen ? 'Miksi suosittelisin?' : 'Miksi en suosittelisi?'}>
+          <Field label={form.suosittelen ? t.form.whyRecommend : t.form.whyNotRecommend}>
             <input
               className={inputClasses}
               value={form.suosittelu_syy}
               onChange={(e) => set('suosittelu_syy', e.target.value)}
-              placeholder="esim. helppo ja erittäin hauska lukea"
+              placeholder={t.form.whyPlaceholder}
             />
           </Field>
 
@@ -292,7 +289,7 @@ export default function JournalForm({ book, initial, onSubmit, onClose }: Journa
             onClick={onClose}
             className="rounded-full px-5 py-2.5 text-sm font-medium text-zinc-600 transition hover:bg-ivory-200"
           >
-            Peruuta
+            {t.common.cancel}
           </button>
           <button
             type="submit"
@@ -300,7 +297,7 @@ export default function JournalForm({ book, initial, onSubmit, onClose }: Journa
             disabled={saving}
             className="rounded-full bg-sepia-700 px-6 py-2.5 text-sm font-medium text-ivory-50 shadow-sm transition hover:bg-sepia-900 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {saving ? 'Tallennetaan…' : book ? 'Tallenna muutokset' : 'Lisää päiväkirjaan'}
+            {saving ? t.common.saving : book ? t.form.saveChanges : t.form.addToJournal}
           </button>
         </footer>
       </aside>

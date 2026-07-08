@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import type { WishlistInput, WishlistItem } from '../types';
 import BookSearchInput from './BookSearchInput';
+import { useI18n } from '../i18n';
 
 interface WishlistSectionProps {
   items: WishlistItem[];
@@ -20,6 +21,7 @@ export default function WishlistSection({
   onRemove,
   onStartEntry,
 }: WishlistSectionProps) {
+  const { t } = useI18n();
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
   const [busy, setBusy] = useState(false);
@@ -35,7 +37,7 @@ export default function WishlistSection({
       setTitle('');
       setAuthor('');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Lisäys epäonnistui.');
+      setError(err instanceof Error ? err.message : t.wishlist.addFailed);
     } finally {
       setBusy(false);
     }
@@ -43,12 +45,12 @@ export default function WishlistSection({
 
   return (
     <section
-      aria-label="Lukulista"
+      aria-label={t.wishlist.title}
       className="rounded-2xl border border-ivory-300 bg-ivory-50 p-6 shadow-sm"
     >
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="font-serif text-2xl text-ink-900">Lukulista</h2>
-        <p className="text-sm text-zinc-500">Kirjat, jotka haluat lukea seuraavaksi</p>
+        <h2 className="font-serif text-2xl text-ink-900">{t.wishlist.title}</h2>
+        <p className="text-sm text-zinc-500">{t.wishlist.subtitle}</p>
       </div>
 
       <form onSubmit={handleAdd} className="mt-4 flex flex-col gap-2 sm:flex-row">
@@ -61,8 +63,8 @@ export default function WishlistSection({
               setTitle(result.title);
               if (result.author) setAuthor(result.author);
             }}
-            placeholder="Kirjan nimi"
-            ariaLabel="Kirjan nimi"
+            placeholder={t.wishlist.namePlaceholder}
+            ariaLabel={t.wishlist.namePlaceholder}
             required
           />
         </div>
@@ -70,24 +72,22 @@ export default function WishlistSection({
           className={`${inputClasses} flex-1`}
           value={author}
           onChange={(e) => setAuthor(e.target.value)}
-          placeholder="Kirjoittaja (valinnainen)"
-          aria-label="Kirjoittaja"
+          placeholder={t.wishlist.authorPlaceholder}
+          aria-label={t.wishlist.authorPlaceholder}
         />
         <button
           type="submit"
           disabled={busy || !title.trim()}
           className="shrink-0 rounded-full bg-sepia-700 px-5 py-2 text-sm font-medium text-ivory-50 shadow-sm transition hover:bg-sepia-900 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {busy ? 'Lisätään…' : '+ Lisää listalle'}
+          {busy ? t.wishlist.adding : t.wishlist.add}
         </button>
       </form>
 
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
 
       {items.length === 0 ? (
-        <p className="mt-4 text-sm text-zinc-400">
-          Lukulista on tyhjä — lisää kirja, jonka haluat lukea joskus.
-        </p>
+        <p className="mt-4 text-sm text-zinc-400">{t.wishlist.empty}</p>
       ) : (
         <ul className="mt-4 divide-y divide-ivory-300">
           {items.map((item) => (
@@ -106,11 +106,11 @@ export default function WishlistSection({
                 onClick={() => onStartEntry(item)}
                 className="rounded-full border border-sepia-300 px-4 py-1.5 text-xs font-medium text-sepia-700 transition hover:bg-sepia-100"
               >
-                Merkitse luetuksi
+                {t.wishlist.markRead}
               </button>
               <button
                 onClick={() => void onRemove(item.id)}
-                aria-label={`Poista ${item.kirjan_nimi} lukulistalta`}
+                aria-label={t.wishlist.removeAria(item.kirjan_nimi)}
                 className="rounded-full p-1.5 text-zinc-400 transition hover:bg-ivory-200 hover:text-red-600"
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="h-4 w-4" aria-hidden="true">

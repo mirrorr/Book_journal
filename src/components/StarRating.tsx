@@ -1,3 +1,5 @@
+import { useI18n } from '../i18n';
+
 interface StarIconProps {
   filled: boolean;
   className?: string;
@@ -34,11 +36,12 @@ export function StarDisplay({
   className = '',
   starClassName = 'h-5 w-5',
 }: StarDisplayProps) {
+  const { t } = useI18n();
   return (
     <div
       className={`flex items-center gap-0.5 text-sepia-500 ${className}`}
       role="img"
-      aria-label={`Arvio ${value} / 5`}
+      aria-label={t.stars.ratingLabel(value)}
     >
       {[1, 2, 3, 4, 5].map((star) => (
         <StarIcon key={star} filled={star <= value} className={starClassName} />
@@ -54,15 +57,16 @@ interface StarPickerProps {
 
 /** Interactive star-rating picker for the journal form. */
 export function StarPicker({ value, onChange }: StarPickerProps) {
+  const { t } = useI18n();
   return (
-    <div className="flex items-center gap-1" role="radiogroup" aria-label="Arvio">
+    <div className="flex items-center gap-1" role="radiogroup" aria-label={t.stars.pickLabel}>
       {[1, 2, 3, 4, 5].map((star) => (
         <button
           key={star}
           type="button"
           role="radio"
           aria-checked={value === star}
-          aria-label={`${star} tähteä`}
+          aria-label={t.stars.starsLabel(star)}
           onClick={() => onChange(star === value ? 0 : star)}
           className={`rounded-md p-1 transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-sepia-500 ${
             star <= value ? 'text-sepia-500' : 'text-zinc-300 hover:text-sepia-300'

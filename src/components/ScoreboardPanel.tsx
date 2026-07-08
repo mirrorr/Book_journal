@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Profile, Scoreboard, ScoreRow } from '../types';
+import { useI18n } from '../i18n';
 
 interface ScoreboardPanelProps {
   scoreboard: Scoreboard;
@@ -13,12 +14,9 @@ type Period = 'monthly' | 'total';
 const medal = (index: number) => ['🥇', '🥈', '🥉'][index] ?? `${index + 1}.`;
 
 function ScoreList({ rows, ownName }: { rows: ScoreRow[]; ownName: string | null }) {
+  const { t } = useI18n();
   if (rows.length === 0) {
-    return (
-      <p className="py-6 text-center text-sm text-zinc-400">
-        Ei vielä lukijoita tulostaululla.
-      </p>
-    );
+    return <p className="py-6 text-center text-sm text-zinc-400">{t.scoreboard.empty}</p>;
   }
   return (
     <ol className="divide-y divide-ivory-300">
@@ -39,10 +37,10 @@ function ScoreList({ rows, ownName }: { rows: ScoreRow[]; ownName: string | null
               }`}
             >
               {row.kayttajanimi}
-              {isOwn && <span className="ml-1.5 text-xs text-sepia-500">(sinä)</span>}
+              {isOwn && <span className="ml-1.5 text-xs text-sepia-500">{t.scoreboard.you}</span>}
             </span>
             <span className="shrink-0 text-sm font-medium text-sepia-700">
-              {row.kirjat} {row.kirjat === 1 ? 'kirja' : 'kirjaa'}
+              {t.scoreboard.books(row.kirjat)}
             </span>
           </li>
         );
@@ -56,6 +54,7 @@ export default function ScoreboardPanel({
   profile,
   onOpenProfile,
 }: ScoreboardPanelProps) {
+  const { t } = useI18n();
   const [period, setPeriod] = useState<Period>('monthly');
 
   const ownName = profile?.public_profile ? profile.kayttajanimi : null;
@@ -63,13 +62,13 @@ export default function ScoreboardPanel({
 
   return (
     <section
-      aria-label="Tulostaulu"
+      aria-label={t.scoreboard.title}
       className="rounded-2xl border border-ivory-300 bg-ivory-50 p-6 shadow-sm"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="font-serif text-2xl text-ink-900">Tulostaulu</h2>
-          <p className="text-sm text-zinc-500">Ahkerimmat lukijat</p>
+          <h2 className="font-serif text-2xl text-ink-900">{t.scoreboard.title}</h2>
+          <p className="text-sm text-zinc-500">{t.scoreboard.subtitle}</p>
         </div>
         <div className="inline-flex rounded-full border border-ivory-300 bg-white p-1 shadow-sm">
           <button
@@ -82,7 +81,7 @@ export default function ScoreboardPanel({
                 : 'text-zinc-500 hover:text-sepia-700'
             }`}
           >
-            Tässä kuussa
+            {t.scoreboard.thisMonth}
           </button>
           <button
             type="button"
@@ -94,7 +93,7 @@ export default function ScoreboardPanel({
                 : 'text-zinc-500 hover:text-sepia-700'
             }`}
           >
-            Kaikkien aikojen
+            {t.scoreboard.allTime}
           </button>
         </div>
       </div>
@@ -105,14 +104,14 @@ export default function ScoreboardPanel({
 
       {!profile?.public_profile && (
         <p className="mt-4 border-t border-ivory-300 pt-4 text-sm text-zinc-500">
-          Et ole vielä tulostaululla.{' '}
+          {t.scoreboard.notOnBoard}{' '}
           <button
             onClick={onOpenProfile}
             className="font-medium text-sepia-700 underline-offset-2 transition hover:text-sepia-900 hover:underline"
           >
-            Liity mukaan profiilistasi
+            {t.scoreboard.joinLink}
           </button>{' '}
-          — vain käyttäjänimesi ja kirjamääräsi näkyvät muille.
+          {t.scoreboard.joinNote}
         </p>
       )}
     </section>

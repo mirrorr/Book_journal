@@ -1,17 +1,17 @@
-/** Format an ISO date (e.g. "2026-05-02") as Finnish long form, e.g. "2. toukokuuta 2026". */
-export function formatFinnishDate(isoDate: string): string {
+/** Format an ISO date (e.g. "2026-05-02") in long form for the given locale. */
+export function formatDate(isoDate: string, locale: string): string {
   const date = new Date(`${isoDate}T00:00:00`);
   if (Number.isNaN(date.getTime())) return isoDate;
-  return new Intl.DateTimeFormat('fi-FI', {
+  return new Intl.DateTimeFormat(locale, {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
   }).format(date);
 }
 
-/** Month + year label for timelines, e.g. "toukokuu 2026". */
-export function formatMonthYear(isoDate: string): string {
+/** Month + year label for timelines, e.g. "toukokuu 2026" / "May 2026". */
+export function formatMonthYear(isoDate: string, locale: string): string {
   const date = new Date(`${isoDate}T00:00:00`);
   if (Number.isNaN(date.getTime())) return isoDate;
-  return new Intl.DateTimeFormat('fi-FI', { month: 'long', year: 'numeric' }).format(date);
+  return new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric' }).format(date);
 }

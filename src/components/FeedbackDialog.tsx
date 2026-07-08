@@ -1,12 +1,14 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import type { FeedbackInput } from '../types';
 import { db } from '../services/db';
+import { useI18n } from '../i18n';
 
 interface FeedbackDialogProps {
   onClose: () => void;
 }
 
 export default function FeedbackDialog({ onClose }: FeedbackDialogProps) {
+  const { t } = useI18n();
   const [tyyppi, setTyyppi] = useState<FeedbackInput['tyyppi']>('bugi');
   const [viesti, setViesti] = useState('');
   const [sending, setSending] = useState(false);
@@ -30,7 +32,7 @@ export default function FeedbackDialog({ onClose }: FeedbackDialogProps) {
       await db.submitFeedback({ tyyppi, viesti: viesti.trim() });
       setSent(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Lähetys epäonnistui.');
+      setError(err instanceof Error ? err.message : t.feedback.sendFailed);
     } finally {
       setSending(false);
     }
@@ -42,7 +44,7 @@ export default function FeedbackDialog({ onClose }: FeedbackDialogProps) {
       onClick={onClose}
       role="dialog"
       aria-modal="true"
-      aria-label="Lähetä palautetta"
+      aria-label={t.feedback.title}
     >
       <div
         className="animate-rise w-full max-w-lg rounded-2xl border border-ivory-300 bg-ivory-50 p-8 shadow-2xl"
@@ -50,32 +52,28 @@ export default function FeedbackDialog({ onClose }: FeedbackDialogProps) {
       >
         {sent ? (
           <div className="text-center">
-            <p className="font-serif text-3xl text-sepia-900">Kiitos palautteesta! 🎉</p>
+            <p className="font-serif text-3xl text-sepia-900">{t.feedback.thanksTitle}</p>
             <p className="mt-3 text-zinc-600">
-              {tyyppi === 'bugi'
-                ? 'Bugi-ilmoituksesi on tallennettu ja siihen palataan.'
-                : 'Ideasi on tallennettu — hyvät ehdotukset päätyvät sovellukseen.'}
+              {tyyppi === 'bugi' ? t.feedback.thanksBug : t.feedback.thanksIdea}
             </p>
             <button
               onClick={onClose}
               className="mt-6 rounded-full bg-sepia-700 px-6 py-2.5 text-sm font-medium text-ivory-50 transition hover:bg-sepia-900"
             >
-              Sulje
+              {t.common.close}
             </button>
           </div>
         ) : (
           <>
             <div className="flex items-start justify-between">
               <div>
-                <h2 className="font-serif text-3xl text-ink-900">Lähetä palautetta</h2>
-                <p className="mt-1 text-sm text-zinc-500">
-                  Löysitkö bugin tai keksitkö parannusidean? Kerro siitä.
-                </p>
+                <h2 className="font-serif text-3xl text-ink-900">{t.feedback.title}</h2>
+                <p className="mt-1 text-sm text-zinc-500">{t.feedback.subtitle}</p>
               </div>
               <button
                 type="button"
                 onClick={onClose}
-                aria-label="Sulje"
+                aria-label={t.common.close}
                 className="rounded-full p-2 text-zinc-500 transition hover:bg-ivory-200 hover:text-zinc-800"
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="h-5 w-5">
@@ -96,7 +94,7 @@ export default function FeedbackDialog({ onClose }: FeedbackDialogProps) {
                       : 'text-zinc-500 hover:text-sepia-700'
                   }`}
                 >
-                  🐛 Bugi
+                  {t.feedback.bug}
                 </button>
                 <button
                   type="button"
@@ -108,13 +106,13 @@ export default function FeedbackDialog({ onClose }: FeedbackDialogProps) {
                       : 'text-zinc-500 hover:text-sepia-700'
                   }`}
                 >
-                  💡 Idea
+                  {t.feedback.idea}
                 </button>
               </div>
 
               <label className="block">
                 <span className="mb-1.5 block text-sm font-semibold text-sepia-900">
-                  {tyyppi === 'bugi' ? 'Mikä meni pieleen?' : 'Mikä tekisi sovelluksesta paremman?'}
+                  {tyyppi === 'bugi' ? t.feedback.bugQuestion : t.feedback.ideaQuestion}
                 </span>
                 <textarea
                   required
@@ -123,9 +121,7 @@ export default function FeedbackDialog({ onClose }: FeedbackDialogProps) {
                   value={viesti}
                   onChange={(e) => setViesti(e.target.value)}
                   placeholder={
-                    tyyppi === 'bugi'
-                      ? 'Kuvaile mitä teit ja mitä tapahtui…'
-                      : 'Kuvaile ideasi ja miten se auttaisi…'
+                    tyyppi === 'bugi' ? t.feedback.bugPlaceholder : t.feedback.ideaPlaceholder
                   }
                 />
               </label>
@@ -142,14 +138,14 @@ export default function FeedbackDialog({ onClose }: FeedbackDialogProps) {
                   onClick={onClose}
                   className="rounded-full px-5 py-2.5 text-sm font-medium text-zinc-600 transition hover:bg-ivory-200"
                 >
-                  Peruuta
+                  {t.common.cancel}
                 </button>
                 <button
                   type="submit"
                   disabled={sending || !viesti.trim()}
                   className="rounded-full bg-sepia-700 px-6 py-2.5 text-sm font-medium text-ivory-50 shadow-sm transition hover:bg-sepia-900 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {sending ? 'Lähetetään…' : 'Lähetä'}
+                  {sending ? t.feedback.sending : t.feedback.send}
                 </button>
               </div>
             </form>

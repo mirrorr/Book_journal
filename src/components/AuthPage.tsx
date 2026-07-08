@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import Wordmark from './Logo';
+import LanguageSwitcher from './LanguageSwitcher';
+import { useI18n } from '../i18n';
 
 type AuthMode = 'login' | 'register';
 
@@ -9,6 +11,7 @@ const inputClasses =
   'placeholder:text-zinc-400 focus:border-sepia-500 focus:outline-none focus:ring-2 focus:ring-sepia-300';
 
 export default function AuthPage() {
+  const { t } = useI18n();
   const { signIn, signUp } = useAuth();
   const [mode, setMode] = useState<AuthMode>('login');
   const [email, setEmail] = useState('');
@@ -35,33 +38,32 @@ export default function AuthPage() {
       } else {
         const { needsEmailConfirmation } = await signUp(email, password);
         if (needsEmailConfirmation) {
-          setNotice(
-            'Tunnus luotu! Tarkista sähköpostisi ja vahvista osoitteesi, sitten kirjaudu sisään.'
-          );
+          setNotice(t.auth.registered);
           setMode('login');
         }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Tunnistautuminen epäonnistui.');
+      setError(err instanceof Error ? err.message : t.auth.authFailed);
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-12">
+    <div className="relative flex min-h-screen items-center justify-center px-4 py-12">
+      <div className="absolute right-4 top-4">
+        <LanguageSwitcher />
+      </div>
       <div className="w-full max-w-md">
         <header className="mb-8 text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-sepia-500">
-            Tervetuloa
+            {t.auth.welcome}
           </p>
           <h1 className="mt-3 flex justify-center">
             <Wordmark className="h-12 w-auto text-ink-900" />
           </h1>
-          <p className="mt-2 font-serif italic text-zinc-500">Jokainen kirja on makuasia.</p>
-          <p className="mt-3 text-zinc-500">
-            Kirjaudu sisään lukeaksesi ja kirjoittaaksesi omaa päiväkirjaasi.
-          </p>
+          <p className="mt-2 font-serif italic text-zinc-500">{t.tagline}</p>
+          <p className="mt-3 text-zinc-500">{t.auth.prompt}</p>
         </header>
 
         <div className="rounded-2xl border border-ivory-300 bg-ivory-50 p-8 shadow-sm">
@@ -76,7 +78,7 @@ export default function AuthPage() {
                   : 'text-zinc-500 hover:text-sepia-700'
               }`}
             >
-              Kirjaudu sisään
+              {t.auth.login}
             </button>
             <button
               type="button"
@@ -88,14 +90,14 @@ export default function AuthPage() {
                   : 'text-zinc-500 hover:text-sepia-700'
               }`}
             >
-              Luo tunnus
+              {t.auth.register}
             </button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <label className="block">
               <span className="mb-1.5 block text-sm font-semibold text-sepia-900">
-                Sähköposti
+                {t.auth.email}
               </span>
               <input
                 type="email"
@@ -104,13 +106,13 @@ export default function AuthPage() {
                 className={inputClasses}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="nimi@esimerkki.fi"
+                placeholder={t.auth.emailPlaceholder}
               />
             </label>
 
             <label className="block">
               <span className="mb-1.5 block text-sm font-semibold text-sepia-900">
-                Salasana
+                {t.auth.password}
               </span>
               <input
                 type="password"
@@ -120,7 +122,7 @@ export default function AuthPage() {
                 className={inputClasses}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder={mode === 'register' ? 'Vähintään 6 merkkiä' : '••••••••'}
+                placeholder={mode === 'register' ? t.auth.passwordPlaceholder : '••••••••'}
               />
             </label>
 
@@ -140,18 +142,12 @@ export default function AuthPage() {
               disabled={submitting}
               className="w-full rounded-full bg-sepia-700 px-6 py-3 font-medium text-ivory-50 shadow-md transition hover:bg-sepia-900 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {submitting
-                ? 'Odota hetki…'
-                : mode === 'login'
-                  ? 'Kirjaudu sisään'
-                  : 'Luo tunnus'}
+              {submitting ? t.auth.wait : mode === 'login' ? t.auth.login : t.auth.register}
             </button>
           </form>
         </div>
 
-        <p className="mt-6 text-center text-xs text-zinc-400">
-          Jokainen käyttäjä näkee vain omat merkintänsä.
-        </p>
+        <p className="mt-6 text-center text-xs text-zinc-400">{t.auth.privacyNote}</p>
       </div>
     </div>
   );

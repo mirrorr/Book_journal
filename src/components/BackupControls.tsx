@@ -1,6 +1,7 @@
 import { useRef, useState, type ChangeEvent } from 'react';
 import type { Book, BookInput } from '../types';
 import { booksToCsv, booksToJson, downloadFile, parseBackup } from '../lib/backup';
+import { useI18n } from '../i18n';
 
 export interface ImportResult {
   added: number;
@@ -34,6 +35,7 @@ function UploadIcon() {
 }
 
 export default function BackupControls({ books, onImport }: BackupControlsProps) {
+  const { t } = useI18n();
   const fileRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -59,14 +61,10 @@ export default function BackupControls({ books, onImport }: BackupControlsProps)
       const text = await file.text();
       const inputs = parseBackup(file.name, text);
       const { added, skipped } = await onImport(inputs);
-      setMessage(
-        added === 0
-          ? `Ei uusia merkintöjä — kaikki ${skipped} olivat jo päiväkirjassa.`
-          : `Tuotu ${added} merkintää${skipped > 0 ? `, ohitettu ${skipped} jo olemassa olevaa` : ''}.`
-      );
+      setMessage(added === 0 ? t.backup.nothingNew(skipped) : t.backup.imported(added, skipped));
     } catch (err) {
       setIsError(true);
-      setMessage(err instanceof Error ? err.message : 'Tuonti epäonnistui.');
+      setMessage(err instanceof Error ? err.message : t.backup.importFailed);
     } finally {
       setBusy(false);
     }
@@ -76,15 +74,15 @@ export default function BackupControls({ books, onImport }: BackupControlsProps)
     <div className="flex flex-wrap items-center gap-2" aria-label="Varmuuskopiointi">
       <button type="button" onClick={exportJson} disabled={busy || books.length === 0} className={buttonClasses}>
         <DownloadIcon />
-        Vie JSON
+        {t.backup.exportJson}
       </button>
       <button type="button" onClick={exportCsv} disabled={busy || books.length === 0} className={buttonClasses}>
         <DownloadIcon />
-        Vie CSV
+        {t.backup.exportCsv}
       </button>
       <button type="button" onClick={() => fileRef.current?.click()} disabled={busy} className={buttonClasses}>
         <UploadIcon />
-        {busy ? 'Tuodaan…' : 'Tuo tiedosto'}
+        {busy ? t.backup.importing : t.backup.importFile}
       </button>
       <input
         ref={fileRef}

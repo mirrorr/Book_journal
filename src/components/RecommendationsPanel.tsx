@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { Recommendation } from '../types';
 import { StarDisplay } from './StarRating';
 import BookCover from './BookCover';
+import { useI18n } from '../i18n';
 
 interface RecommendationsPanelProps {
   recommendations: Recommendation[];
@@ -18,6 +19,7 @@ export default function RecommendationsPanel({
   existingKeys,
   onAddToWishlist,
 }: RecommendationsPanelProps) {
+  const { t } = useI18n();
   const [addingKey, setAddingKey] = useState<string | null>(null);
 
   if (recommendations.length === 0) return null;
@@ -33,10 +35,10 @@ export default function RecommendationsPanel({
   };
 
   return (
-    <section aria-label="Muiden lukijoiden suositukset">
+    <section aria-label={t.recs.title}>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="font-serif text-2xl text-ink-900">Muut lukijat suosittelevat</h2>
-        <p className="text-sm text-zinc-500">Vain kirja, arvio ja suosittelun syy — ei muuta</p>
+        <h2 className="font-serif text-2xl text-ink-900">{t.recs.title}</h2>
+        <p className="text-sm text-zinc-500">{t.recs.subtitle}</p>
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -74,10 +76,10 @@ export default function RecommendationsPanel({
                     className="rounded-full border border-sepia-300 px-3 py-1 text-xs font-medium text-sepia-700 transition hover:bg-sepia-100 disabled:cursor-default disabled:border-ivory-300 disabled:text-zinc-400 disabled:hover:bg-transparent"
                   >
                     {alreadyKnown
-                      ? '✓ Jo listallasi'
+                      ? t.recs.alreadyListed
                       : addingKey === key
-                        ? 'Lisätään…'
-                        : '+ Lukulistalle'}
+                        ? t.recs.adding
+                        : t.recs.addToList}
                   </button>
                 </div>
               </div>

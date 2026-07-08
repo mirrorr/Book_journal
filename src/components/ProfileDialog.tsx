@@ -2,6 +2,8 @@ import { useEffect, useState, type FormEvent } from 'react';
 import type { Profile } from '../types';
 import { hasExtendedFeatures } from '../types';
 import Wordmark from './Logo';
+import LanguageSwitcher from './LanguageSwitcher';
+import { useI18n } from '../i18n';
 
 interface ProfileDialogProps {
   /** Existing profile to edit, or null when creating one. */
@@ -53,6 +55,7 @@ export default function ProfileDialog({
   onSave,
   onClose,
 }: ProfileDialogProps) {
+  const { t } = useI18n();
   const [kayttajanimi, setKayttajanimi] = useState(profile?.kayttajanimi ?? '');
   const [extended, setExtended] = useState(hasExtendedFeatures(profile));
   const [lukutavoite, setLukutavoite] = useState(String(profile?.lukutavoite ?? 0));
@@ -86,7 +89,7 @@ export default function ProfileDialog({
         public_profile: extended && naytaTulostaulu && publicProfile,
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Tallennus epäonnistui.');
+      setError(err instanceof Error ? err.message : t.profile.saveFailed);
       setSaving(false);
     }
   };
@@ -99,19 +102,17 @@ export default function ProfileDialog({
       <div className="flex items-start justify-between">
         <div>
           <h2 className="font-serif text-3xl text-ink-900">
-            {firstTime ? 'Luo profiili' : 'Profiili'}
+            {firstTime ? t.profile.createTitle : t.profile.editTitle}
           </h2>
           <p className="mt-1 text-sm text-zinc-500">
-            {firstTime
-              ? 'Vielä yksi askel: valitse käyttäjänimi. Asetuksia voi muuttaa myöhemmin.'
-              : 'Käyttäjänimi ja käytössä olevat ominaisuudet.'}
+            {firstTime ? t.profile.createSubtitle : t.profile.editSubtitle}
           </p>
         </div>
         {!firstTime && onClose && (
           <button
             type="button"
             onClick={onClose}
-            aria-label="Sulje"
+            aria-label={t.common.close}
             className="rounded-full p-2 text-zinc-500 transition hover:bg-ivory-200 hover:text-zinc-800"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="h-5 w-5">
@@ -124,26 +125,26 @@ export default function ProfileDialog({
       <form onSubmit={handleSubmit} className="mt-6 space-y-5">
         <label className="block">
           <span className="mb-1.5 block text-sm font-semibold text-sepia-900">
-            Käyttäjänimi
+            {t.profile.username}
           </span>
           <input
             required
             minLength={3}
             maxLength={20}
             pattern="[A-Za-z0-9_åäöÅÄÖ]{3,20}"
-            title="3–20 merkkiä: kirjaimia, numeroita ja alaviivoja"
+            title={t.profile.usernameRule}
             className={inputClasses}
             value={kayttajanimi}
             onChange={(e) => setKayttajanimi(e.target.value)}
-            placeholder="esim. LukuLiisa"
+            placeholder={t.profile.usernamePlaceholder}
           />
-          <span className="mt-1 block text-xs text-zinc-400">
-            Näkyy muille vain yhteisöominaisuuksissa. 3–20 merkkiä.
-          </span>
+          <span className="mt-1 block text-xs text-zinc-400">{t.profile.usernameHint}</span>
         </label>
 
         <fieldset>
-          <legend className="mb-2 text-sm font-semibold text-sepia-900">Ominaisuudet</legend>
+          <legend className="mb-2 text-sm font-semibold text-sepia-900">
+            {t.profile.features}
+          </legend>
           <div className="inline-flex rounded-full border border-ivory-300 bg-white p-1 shadow-sm">
             <button
               type="button"
@@ -153,7 +154,7 @@ export default function ProfileDialog({
                 !extended ? 'bg-sepia-700 text-ivory-50 shadow' : 'text-zinc-500 hover:text-sepia-700'
               }`}
             >
-              Perus
+              {t.profile.basic}
             </button>
             <button
               type="button"
@@ -163,13 +164,11 @@ export default function ProfileDialog({
                 extended ? 'bg-sepia-700 text-ivory-50 shadow' : 'text-zinc-500 hover:text-sepia-700'
               }`}
             >
-              Laajennettu
+              {t.profile.extended}
             </button>
           </div>
           <p className="mt-1.5 text-xs text-zinc-400">
-            {extended
-              ? 'Valitse alta, mitkä lisäominaisuudet haluat käyttöön.'
-              : 'Perustilassa käytössä ovat päiväkirja, lukulista ja suositukset.'}
+            {extended ? t.profile.extendedHint : t.profile.basicHint}
           </p>
         </fieldset>
 
@@ -178,11 +177,9 @@ export default function ProfileDialog({
             <div className="rounded-xl border border-ivory-300 bg-white p-4 shadow-sm">
               <label className="block">
                 <span className="block text-sm font-semibold text-sepia-900">
-                  Lukutavoite (kirjaa vuodessa)
+                  {t.profile.goalTitle}
                 </span>
-                <span className="mb-2 block text-xs text-zinc-500">
-                  Näyttää edistymispalkin etusivulla. 0 = ei tavoitetta.
-                </span>
+                <span className="mb-2 block text-xs text-zinc-500">{t.profile.goalHint}</span>
                 <input
                   type="number"
                   min={0}
@@ -197,8 +194,8 @@ export default function ProfileDialog({
             <FeatureCheckbox
               checked={naytaTulostaulu}
               onChange={setNaytaTulostaulu}
-              title="Tulostaulu"
-              description="Näytä ahkerimpien lukijoiden lista etusivulla."
+              title={t.profile.scoreboardTitle}
+              description={t.profile.scoreboardDesc}
             >
               <label className="flex cursor-pointer items-start gap-3">
                 <input
@@ -209,12 +206,9 @@ export default function ProfileDialog({
                 />
                 <span>
                   <span className="block text-sm font-medium text-sepia-900">
-                    Näytä minut tulostaululla
+                    {t.profile.showMe}
                   </span>
-                  <span className="block text-xs text-zinc-500">
-                    Muut näkevät vain käyttäjänimesi ja kirjamääräsi — eivät koskaan
-                    päiväkirjasi sisältöä.
-                  </span>
+                  <span className="block text-xs text-zinc-500">{t.profile.showMeDesc}</span>
                 </span>
               </label>
             </FeatureCheckbox>
@@ -222,8 +216,8 @@ export default function ProfileDialog({
             <FeatureCheckbox
               checked={naytaLukupiirit}
               onChange={setNaytaLukupiirit}
-              title="Lukupiirit"
-              description="Lue yhdessä: perusta piiri tai liity kutsukoodilla, ja seuratkaa toistenne lukemista."
+              title={t.profile.circlesTitle}
+              description={t.profile.circlesDesc}
             />
           </div>
         )}
@@ -241,7 +235,7 @@ export default function ProfileDialog({
               onClick={onClose}
               className="rounded-full px-5 py-2.5 text-sm font-medium text-zinc-600 transition hover:bg-ivory-200"
             >
-              Peruuta
+              {t.common.cancel}
             </button>
           )}
           <button
@@ -249,7 +243,7 @@ export default function ProfileDialog({
             disabled={saving}
             className="rounded-full bg-sepia-700 px-6 py-2.5 text-sm font-medium text-ivory-50 shadow-sm transition hover:bg-sepia-900 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {saving ? 'Tallennetaan…' : firstTime ? 'Aloita lukupäiväkirja' : 'Tallenna'}
+            {saving ? t.common.saving : firstTime ? t.profile.start : t.common.save}
           </button>
         </div>
       </form>
@@ -258,11 +252,14 @@ export default function ProfileDialog({
 
   if (firstTime) {
     return (
-      <div className="flex min-h-screen items-center justify-center px-4 py-12">
+      <div className="relative flex min-h-screen items-center justify-center px-4 py-12">
+        <div className="absolute right-4 top-4">
+          <LanguageSwitcher />
+        </div>
         <div className="w-full max-w-lg">
           <header className="mb-8 text-center">
             <p className="text-xs font-semibold uppercase tracking-[0.25em] text-sepia-500">
-              Tervetuloa
+              {t.auth.welcome}
             </p>
             <h1 className="mt-3 flex justify-center">
               <Wordmark className="h-12 w-auto text-ink-900" />
@@ -280,7 +277,7 @@ export default function ProfileDialog({
       onClick={onClose}
       role="dialog"
       aria-modal="true"
-      aria-label="Profiili"
+      aria-label={t.profile.editTitle}
     >
       {card}
     </div>

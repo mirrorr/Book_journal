@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import type { Book } from '../types';
 import { formatMonthYear } from '../lib/format';
+import { useI18n } from '../i18n';
 
 interface DashboardStatsProps {
   books: Book[];
@@ -14,7 +15,7 @@ interface TimelineBucket {
   count: number;
 }
 
-function buildTimeline(books: Book[]): TimelineBucket[] {
+function buildTimeline(books: Book[], locale: string): TimelineBucket[] {
   const buckets = new Map<string, TimelineBucket>();
   for (const book of books) {
     const key = book.valmistumispaiva.slice(0, 7); // "YYYY-MM"
@@ -24,7 +25,7 @@ function buildTimeline(books: Book[]): TimelineBucket[] {
     } else {
       buckets.set(key, {
         key,
-        label: formatMonthYear(`${key}-01`),
+        label: formatMonthYear(`${key}-01`, locale),
         count: 1,
       });
     }
@@ -49,6 +50,7 @@ function StatCard({ label, value, sublabel }: StatCardProps) {
 }
 
 function ReadingGoalCard({ books, goal }: { books: Book[]; goal: number }) {
+  const { t } = useI18n();
   const year = String(new Date().getFullYear());
   const readThisYear = books.filter((b) => b.valmistumispaiva.startsWith(year)).length;
   const progress = Math.min(100, (readThisYear / goal) * 100);
@@ -58,12 +60,10 @@ function ReadingGoalCard({ books, goal }: { books: Book[]; goal: number }) {
     <div className="rounded-2xl border border-ivory-300 bg-ivory-50 p-5 shadow-sm sm:col-span-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <p className="text-xs font-semibold uppercase tracking-widest text-sepia-500">
-          Lukutavoite {year}
+          {t.stats.goalTitle(year)}
         </p>
         <p className="text-sm text-zinc-500">
-          {done
-            ? `Tavoite saavutettu — hienoa! 🎉`
-            : `${goal - readThisYear} ${goal - readThisYear === 1 ? 'kirja' : 'kirjaa'} jäljellä`}
+          {done ? t.stats.goalReached : t.stats.goalRemaining(goal - readThisYear)}
         </p>
       </div>
       <div className="mt-3 flex items-center gap-4">
@@ -84,6 +84,7 @@ function ReadingGoalCard({ books, goal }: { books: Book[]; goal: number }) {
 }
 
 export default function DashboardStats({ books, lukutavoite = 0 }: DashboardStatsProps) {
+  const { t, locale } = useI18n();
   const stats = useMemo(() => {
     const total = books.length;
     const rated = books.filter((b) => b.arvio > 0);
@@ -96,32 +97,32 @@ export default function DashboardStats({ books, lukutavoite = 0 }: DashboardStat
       total,
       average,
       recommended,
-      timeline: buildTimeline(books),
+      timeline: buildTimeline(books, locale),
     };
-  }, [books]);
+  }, [books, locale]);
 
   if (books.length === 0 && lukutavoite === 0) return null;
 
   const maxCount = Math.max(...stats.timeline.map((b) => b.count), 1);
 
   return (
-    <section aria-label="Lukutilastot" className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+    <section aria-label={t.stats.ariaLabel} className="grid grid-cols-1 gap-4 sm:grid-cols-3">
       {lukutavoite > 0 && <ReadingGoalCard books={books} goal={lukutavoite} />}
-      <StatCard label="Luetut kirjat" value={String(stats.total)} sublabel="yhteensä päiväkirjassa" />
+      <StatCard label={t.stats.booksRead} value={String(stats.total)} sublabel={t.stats.booksReadSub} />
       <StatCard
-        label="Keskiarvio"
+        label={t.stats.average}
         value={stats.average > 0 ? `${stats.average.toFixed(1)} ★` : '–'}
-        sublabel="kaikista arvioista"
+        sublabel={t.stats.averageSub}
       />
       <StatCard
-        label="Suosittelisin"
+        label={t.stats.wouldRecommend}
         value={`${stats.recommended} / ${stats.total}`}
-        sublabel="kirjaa eteenpäin"
+        sublabel={t.stats.wouldRecommendSub}
       />
 
       <div className="rounded-2xl border border-ivory-300 bg-ivory-50 p-5 shadow-sm sm:col-span-3">
         <p className="text-xs font-semibold uppercase tracking-widest text-sepia-500">
-          Lukuhistoria
+          {t.stats.history}
         </p>
         <ul className="mt-4 space-y-2.5">
           {stats.timeline.map((bucket) => (

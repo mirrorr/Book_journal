@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useI18n } from '../i18n';
 
 interface BookCoverProps {
   title: string;
@@ -24,6 +25,7 @@ export default function BookCover({
   className = '',
   onLoadResult,
 }: BookCoverProps) {
+  const { t } = useI18n();
   const [failed, setFailed] = useState(false);
 
   // A newly saved URL should get a fresh chance even after an earlier failure.
@@ -55,7 +57,7 @@ export default function BookCover({
           <div className="h-px w-3/4 bg-ivory-100/40" />
           <div className="min-h-0 overflow-hidden px-1">
             <p className="line-clamp-4 font-serif text-[0.6em] font-semibold leading-snug text-ivory-100 [font-size:min(0.8rem,1em)]">
-              {title || 'Nimetön'}
+              {title || t.cover.untitled}
             </p>
             <p className="mt-1 line-clamp-2 text-[0.55em] tracking-wide text-ivory-100/70 [font-size:min(0.65rem,1em)]">
               {author}
