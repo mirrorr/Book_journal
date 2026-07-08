@@ -3,6 +3,7 @@ import type { Book, BookInput } from '../types';
 import { EMPTY_BOOK_INPUT } from '../types';
 import { StarPicker } from './StarRating';
 import BookCover from './BookCover';
+import BookSearchInput from './BookSearchInput';
 
 interface JournalFormProps {
   /** When provided, the form edits an existing entry; otherwise it creates a new one. */
@@ -110,11 +111,20 @@ export default function JournalForm({ book, initial, onSubmit, onClose }: Journa
         <form onSubmit={handleSubmit} className="flex-1 space-y-6 overflow-y-auto px-8 py-6">
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <Field label="Kirjan nimi *">
-              <input
+              <BookSearchInput
                 required
                 className={inputClasses}
                 value={form.kirjan_nimi}
-                onChange={(e) => set('kirjan_nimi', e.target.value)}
+                onChange={(v) => set('kirjan_nimi', v)}
+                onSelect={(result) => {
+                  setForm((prev) => ({
+                    ...prev,
+                    kirjan_nimi: result.title,
+                    kirjoittaja: result.author || prev.kirjoittaja,
+                    kansikuva_url: result.coverUrl || prev.kansikuva_url,
+                  }));
+                  setCoverFailed(false);
+                }}
                 placeholder="esim. Juurihoito"
               />
             </Field>

@@ -16,6 +16,7 @@ import JournalDetail from './components/JournalDetail';
 import DashboardStats from './components/DashboardStats';
 import AuthPage from './components/AuthPage';
 import BackupControls, { type ImportResult } from './components/BackupControls';
+import CommunitiesSection from './components/CommunitiesSection';
 import FeedbackDialog from './components/FeedbackDialog';
 import ProfileDialog from './components/ProfileDialog';
 import ScoreboardPanel from './components/ScoreboardPanel';
@@ -282,6 +283,7 @@ export default function App() {
                   profile={profile}
                   onOpenProfile={() => setProfileDialogOpen(true)}
                 />
+                <CommunitiesSection />
                 <RecommendationsPanel
                   recommendations={recommendations}
                   existingKeys={knownKeys}

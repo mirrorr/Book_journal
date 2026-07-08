@@ -2,6 +2,8 @@ import type {
   Book,
   BookInput,
   FeedbackInput,
+  Group,
+  GroupScoreRow,
   Profile,
   Recommendation,
   Scoreboard,
@@ -37,6 +39,12 @@ export interface DbAdapter {
   saveProfile(input: Profile): Promise<Profile>;
   /** Monthly and all-time standings of users who opted in. */
   getScoreboard(): Promise<Scoreboard>;
+  /** Lukupiirit: reading circles. Supabase mode only; local mode returns []. */
+  listGroups(): Promise<Group[]>;
+  createGroup(nimi: string): Promise<Group>;
+  joinGroup(kutsukoodi: string): Promise<Group>;
+  leaveGroup(id: string): Promise<void>;
+  getGroupScoreboard(id: string): Promise<GroupScoreRow[]>;
 }
 
 /* ------------------------------------------------------------------ */
@@ -210,6 +218,27 @@ class LocalStorageAdapter implements DbAdapter {
       rows.sort((a, b) => b.kirjat - a.kirjat).slice(0, 10);
     return { monthly: top(monthly), total: top(total) };
   }
+
+  // Reading circles need other users, so they exist only in Supabase mode.
+  async listGroups(): Promise<Group[]> {
+    return [];
+  }
+
+  async createGroup(): Promise<Group> {
+    throw new Error('Lukupiirit ovat käytettävissä vain Supabase-tilassa.');
+  }
+
+  async joinGroup(): Promise<Group> {
+    throw new Error('Lukupiirit ovat käytettävissä vain Supabase-tilassa.');
+  }
+
+  async leaveGroup(): Promise<void> {
+    throw new Error('Lukupiirit ovat käytettävissä vain Supabase-tilassa.');
+  }
+
+  async getGroupScoreboard(): Promise<GroupScoreRow[]> {
+    return [];
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -349,6 +378,44 @@ class SupabaseAdapter implements DbAdapter {
       monthly: (monthly.data ?? []) as ScoreRow[],
       total: (total.data ?? []) as ScoreRow[],
     };
+  }
+
+  // Group operations go through security-definer RPC functions: the tables
+  // themselves deny all direct access, and each function validates membership.
+
+  async listGroups(): Promise<Group[]> {
+    const { data, error } = await getSupabaseClient().rpc('my_groups');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as Group[];
+  }
+
+  async createGroup(nimi: string): Promise<Group> {
+    const { data, error } = await getSupabaseClient().rpc('create_group', {
+      nimi_in: nimi,
+    });
+    if (error) throw new Error(error.message);
+    return (Array.isArray(data) ? data[0] : data) as Group;
+  }
+
+  async joinGroup(kutsukoodi: string): Promise<Group> {
+    const { data, error } = await getSupabaseClient().rpc('join_group', {
+      koodi_in: kutsukoodi,
+    });
+    if (error) throw new Error(error.message);
+    return (Array.isArray(data) ? data[0] : data) as Group;
+  }
+
+  async leaveGroup(id: string): Promise<void> {
+    const { error } = await getSupabaseClient().rpc('leave_group', { gid: id });
+    if (error) throw new Error(error.message);
+  }
+
+  async getGroupScoreboard(id: string): Promise<GroupScoreRow[]> {
+    const { data, error } = await getSupabaseClient().rpc('group_scoreboard', {
+      gid: id,
+    });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as GroupScoreRow[];
   }
 }
 

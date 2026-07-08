@@ -70,6 +70,11 @@ src/
 - **Scoreboard (Tulostaulu)**: monthly and all-time top readers among users who opted in. Powered by the `scoreboard_monthly` / `scoreboard_total` views — only usernames and book counts are ever exposed, and participation is off by default.
 - **Reading goal (Lukutavoite)**: set a books-per-year target in your profile and the dashboard shows a progress bar for the current year.
 
+## Book search & reading circles
+
+- **Book search autofill**: the title fields in the journal form and wish list query [Open Library](https://openlibrary.org) (free, no API key) as you type — picking a suggestion fills the title, author, and cover image automatically.
+- **Lukupiirit (reading circles)**: create an invite-code group or join one with a friend's code; each circle shows its members' usernames with monthly and all-time book counts. The `groups` / `group_members` tables allow no direct access — everything goes through security-definer SQL functions that validate membership. Supabase mode only.
+
 ## Backup & feedback
 
 The footer has two panels: **Varmuuskopio** exports/imports the whole journal as JSON or CSV, and **Palaute** lets users submit bug reports and feature ideas. Feedback is stored in the write-only `feedback` table — read submissions in the Supabase Table Editor (`select * from feedback order by created_at desc`).

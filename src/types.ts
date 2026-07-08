@@ -83,6 +83,22 @@ export interface Scoreboard {
   total: ScoreRow[];
 }
 
+/** A reading circle (lukupiiri) the user belongs to. */
+export interface Group {
+  id: string;
+  nimi: string;
+  /** Share this code so others can join. */
+  kutsukoodi: string;
+  jasenia: number;
+}
+
+/** One member's standing inside a group. */
+export interface GroupScoreRow {
+  kayttajanimi: string;
+  kirjat: number;
+  kirjat_kuussa: number;
+}
+
 export const EMPTY_BOOK_INPUT: BookInput = {
   kirjan_nimi: '',
   kirjoittaja: '',

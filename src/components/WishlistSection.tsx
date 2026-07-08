@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import type { WishlistInput, WishlistItem } from '../types';
+import BookSearchInput from './BookSearchInput';
 
 interface WishlistSectionProps {
   items: WishlistItem[];
@@ -51,16 +52,22 @@ export default function WishlistSection({
       </div>
 
       <form onSubmit={handleAdd} className="mt-4 flex flex-col gap-2 sm:flex-row">
+        <div className="flex-1">
+          <BookSearchInput
+            className={inputClasses}
+            value={title}
+            onChange={setTitle}
+            onSelect={(result) => {
+              setTitle(result.title);
+              if (result.author) setAuthor(result.author);
+            }}
+            placeholder="Kirjan nimi"
+            ariaLabel="Kirjan nimi"
+            required
+          />
+        </div>
         <input
-          className={inputClasses}
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Kirjan nimi"
-          aria-label="Kirjan nimi"
-          required
-        />
-        <input
-          className={inputClasses}
+          className={`${inputClasses} flex-1`}
           value={author}
           onChange={(e) => setAuthor(e.target.value)}
           placeholder="Kirjoittaja (valinnainen)"

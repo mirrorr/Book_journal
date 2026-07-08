@@ -220,6 +220,149 @@ create policy "Users submit feedback"
   with check (auth.uid() = user_id);
 
 -- ---------------------------------------------------------------------------
+-- Lukupiirit (reading circles): invite-code groups with a group scoreboard.
+-- The tables allow NO direct access (RLS enabled, no policies) — all reads
+-- and writes go through the security-definer functions below, each of which
+-- validates the caller's membership itself. This avoids the recursive-policy
+-- pitfalls of membership tables.
+-- ---------------------------------------------------------------------------
+
+create table if not exists public.groups (
+  id          uuid primary key default gen_random_uuid(),
+  nimi        text not null check (char_length(trim(nimi)) between 3 and 40),
+  kutsukoodi  text not null unique,
+  created_by  uuid references auth.users (id) on delete set null,
+  created_at  timestamptz not null default now()
+);
+
+create table if not exists public.group_members (
+  group_id   uuid not null references public.groups (id) on delete cascade,
+  user_id    uuid not null references auth.users (id) on delete cascade,
+  joined_at  timestamptz not null default now(),
+  primary key (group_id, user_id)
+);
+
+alter table public.groups enable row level security;
+alter table public.group_members enable row level security;
+-- (no policies on purpose: deny all direct access)
+
+-- List the caller's groups with member counts.
+create or replace function public.my_groups()
+returns table (id uuid, nimi text, kutsukoodi text, jasenia int)
+language sql security definer set search_path = public as $$
+  select g.id, g.nimi, g.kutsukoodi,
+         (select count(*)::int from group_members m where m.group_id = g.id)
+  from groups g
+  join group_members gm on gm.group_id = g.id and gm.user_id = auth.uid()
+  order by g.created_at;
+$$;
+
+-- Create a group with a unique invite code and join it as the first member.
+create or replace function public.create_group(nimi_in text)
+returns table (id uuid, nimi text, kutsukoodi text, jasenia int)
+language plpgsql security definer set search_path = public as $$
+declare
+  gid uuid;
+  koodi text;
+begin
+  if auth.uid() is null then
+    raise exception 'Kirjaudu sisään luodaksesi lukupiirin.';
+  end if;
+  if char_length(trim(nimi_in)) < 3 or char_length(trim(nimi_in)) > 40 then
+    raise exception 'Lukupiirin nimen on oltava 3–40 merkkiä.';
+  end if;
+  loop
+    koodi := upper(substr(encode(gen_random_bytes(6), 'hex'), 1, 8));
+    begin
+      insert into groups (nimi, kutsukoodi, created_by)
+      values (trim(nimi_in), koodi, auth.uid())
+      returning groups.id into gid;
+      exit;
+    exception when unique_violation then
+      -- astronomically rare code collision: try another code
+    end;
+  end loop;
+  insert into group_members (group_id, user_id) values (gid, auth.uid());
+  return query
+    select g.id, g.nimi, g.kutsukoodi, 1
+    from groups g where g.id = gid;
+end $$;
+
+-- Join a group by invite code (idempotent: joining twice is fine).
+create or replace function public.join_group(koodi_in text)
+returns table (id uuid, nimi text, kutsukoodi text, jasenia int)
+language plpgsql security definer set search_path = public as $$
+declare
+  gid uuid;
+begin
+  if auth.uid() is null then
+    raise exception 'Kirjaudu sisään liittyäksesi lukupiiriin.';
+  end if;
+  select g.id into gid from groups g
+  where g.kutsukoodi = upper(trim(koodi_in));
+  if gid is null then
+    raise exception 'Kutsukoodilla ei löytynyt lukupiiriä.';
+  end if;
+  insert into group_members (group_id, user_id)
+  values (gid, auth.uid())
+  on conflict do nothing;
+  return query
+    select g.id, g.nimi, g.kutsukoodi,
+           (select count(*)::int from group_members m where m.group_id = g.id)
+    from groups g where g.id = gid;
+end $$;
+
+-- Leave a group; the group itself is removed when the last member leaves.
+create or replace function public.leave_group(gid uuid)
+returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  delete from group_members
+  where group_id = gid and user_id = auth.uid();
+  delete from groups g
+  where g.id = gid
+    and not exists (select 1 from group_members m where m.group_id = g.id);
+end $$;
+
+-- Standings inside one group: members' usernames with all-time and
+-- this-month book counts. Only callable by members of that group.
+create or replace function public.group_scoreboard(gid uuid)
+returns table (kayttajanimi text, kirjat int, kirjat_kuussa int)
+language plpgsql security definer set search_path = public as $$
+begin
+  if not exists (
+    select 1 from group_members m
+    where m.group_id = gid and m.user_id = auth.uid()
+  ) then
+    raise exception 'Et ole tämän lukupiirin jäsen.';
+  end if;
+  return query
+    select
+      p.kayttajanimi,
+      count(b.id)::int,
+      count(b.id) filter (
+        where b.valmistumispaiva >= date_trunc('month', current_date)
+      )::int
+    from group_members gm
+    join profiles p on p.user_id = gm.user_id
+    left join books b on b.user_id = gm.user_id
+    where gm.group_id = gid
+    group by p.kayttajanimi
+    order by 2 desc;
+end $$;
+
+revoke all on function public.my_groups() from anon, public;
+revoke all on function public.create_group(text) from anon, public;
+revoke all on function public.join_group(text) from anon, public;
+revoke all on function public.leave_group(uuid) from anon, public;
+revoke all on function public.group_scoreboard(uuid) from anon, public;
+grant execute on function public.my_groups() to authenticated;
+grant execute on function public.create_group(text) to authenticated;
+grant execute on function public.join_group(text) to authenticated;
+grant execute on function public.leave_group(uuid) to authenticated;
+grant execute on function public.group_scoreboard(uuid) to authenticated;
+
+-- ---------------------------------------------------------------------------
 -- MIGRATION: run this instead if the old table (without user_id) already
 -- exists. Existing rows are assigned to the user whose email you set below.
 -- ---------------------------------------------------------------------------
