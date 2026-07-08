@@ -278,7 +278,10 @@ begin
     raise exception 'Lukupiirin nimen on oltava 3–40 merkkiä.';
   end if;
   loop
-    koodi := upper(substr(encode(gen_random_bytes(6), 'hex'), 1, 8));
+    -- Derive the code from gen_random_uuid() (a core function) rather than
+    -- pgcrypto's gen_random_bytes, which lives in the `extensions` schema and
+    -- is not on this function's search_path.
+    koodi := upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 8));
     begin
       insert into groups (nimi, kutsukoodi, created_by)
       values (trim(nimi_in), koodi, auth.uid())
