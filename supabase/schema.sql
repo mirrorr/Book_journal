@@ -139,8 +139,14 @@ create table if not exists public.profiles (
   public_profile  boolean not null default false,   -- opt-in to the scoreboard
   lukutavoite     smallint not null default 0
                     check (lukutavoite between 0 and 1000),  -- books/year, 0 = no goal
+  nayta_tulostaulu boolean not null default false,  -- extended feature toggles
+  nayta_lukupiirit boolean not null default false,
   created_at      timestamptz not null default now()
 );
+
+-- Idempotent upgrade for databases created before the feature toggles:
+alter table public.profiles add column if not exists nayta_tulostaulu boolean not null default false;
+alter table public.profiles add column if not exists nayta_lukupiirit boolean not null default false;
 
 -- Case-insensitive uniqueness: "Liisa" and "liisa" are the same name.
 create unique index if not exists profiles_kayttajanimi_lower_idx

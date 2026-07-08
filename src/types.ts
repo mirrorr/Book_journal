@@ -69,9 +69,18 @@ export interface Profile {
   kayttajanimi: string;
   /** Opt-in: appear on the shared scoreboard. */
   public_profile: boolean;
-  /** Reading goal, books per year. 0 = no goal. */
+  /** Reading goal, books per year. 0 = no goal (and hides the goal card). */
   lukutavoite: number;
+  /** Extended feature: show the scoreboard panel on the dashboard. */
+  nayta_tulostaulu: boolean;
+  /** Extended feature: show the reading circles section. */
+  nayta_lukupiirit: boolean;
 }
+
+/** True when any extended feature is enabled. */
+export const hasExtendedFeatures = (profile: Profile | null): boolean =>
+  !!profile &&
+  (profile.nayta_tulostaulu || profile.nayta_lukupiirit || profile.lukutavoite > 0);
 
 export interface ScoreRow {
   kayttajanimi: string;

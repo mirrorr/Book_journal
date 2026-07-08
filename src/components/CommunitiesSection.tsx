@@ -180,7 +180,7 @@ export default function CommunitiesSection() {
 
       {DATA_MODE !== 'supabase' ? (
         <p className="mt-4 text-sm text-zinc-400">
-          Lukupiirit ovat käytettävissä vain kirjautuneena (Supabase-tila).
+          Lukupiirit ovat käytettävissä vain kirjautuneena.
         </p>
       ) : (
         <>

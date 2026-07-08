@@ -229,7 +229,7 @@ export default function App() {
       <header className="mb-10 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-sepia-500">
-            {DATA_MODE === 'supabase' ? 'Supabase-tietokanta' : 'Paikallinen tila'}
+            {DATA_MODE === 'local' ? 'Paikallinen tila' : 'Oma kirjahylly'}
           </p>
           <h1 className="mt-1 font-serif text-5xl text-ink-900">Lukupäiväkirja</h1>
           <p className="mt-2 max-w-xl text-zinc-500">
@@ -278,12 +278,14 @@ export default function App() {
             element={
               <main className="space-y-10">
                 <DashboardStats books={books} lukutavoite={profile?.lukutavoite ?? 0} />
-                <ScoreboardPanel
-                  scoreboard={scoreboard}
-                  profile={profile}
-                  onOpenProfile={() => setProfileDialogOpen(true)}
-                />
-                <CommunitiesSection />
+                {profile?.nayta_tulostaulu && (
+                  <ScoreboardPanel
+                    scoreboard={scoreboard}
+                    profile={profile}
+                    onOpenProfile={() => setProfileDialogOpen(true)}
+                  />
+                )}
+                {profile?.nayta_lukupiirit && <CommunitiesSection />}
                 <RecommendationsPanel
                   recommendations={recommendations}
                   existingKeys={knownKeys}

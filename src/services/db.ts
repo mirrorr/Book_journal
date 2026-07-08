@@ -225,15 +225,15 @@ class LocalStorageAdapter implements DbAdapter {
   }
 
   async createGroup(): Promise<Group> {
-    throw new Error('Lukupiirit ovat käytettävissä vain Supabase-tilassa.');
+    throw new Error('Lukupiirit ovat käytettävissä vain kirjautuneena.');
   }
 
   async joinGroup(): Promise<Group> {
-    throw new Error('Lukupiirit ovat käytettävissä vain Supabase-tilassa.');
+    throw new Error('Lukupiirit ovat käytettävissä vain kirjautuneena.');
   }
 
   async leaveGroup(): Promise<void> {
-    throw new Error('Lukupiirit ovat käytettävissä vain Supabase-tilassa.');
+    throw new Error('Lukupiirit ovat käytettävissä vain kirjautuneena.');
   }
 
   async getGroupScoreboard(): Promise<GroupScoreRow[]> {
@@ -333,7 +333,7 @@ class SupabaseAdapter implements DbAdapter {
   async getProfile(): Promise<Profile | null> {
     const { data, error } = await getSupabaseClient()
       .from('profiles')
-      .select('kayttajanimi, public_profile, lukutavoite')
+      .select('kayttajanimi, public_profile, lukutavoite, nayta_tulostaulu, nayta_lukupiirit')
       .maybeSingle();
     if (error) throw new Error(error.message);
     return (data as Profile) ?? null;
@@ -348,7 +348,7 @@ class SupabaseAdapter implements DbAdapter {
     const { data, error } = await client
       .from('profiles')
       .upsert({ user_id: user.id, ...input }, { onConflict: 'user_id' })
-      .select('kayttajanimi, public_profile, lukutavoite')
+      .select('kayttajanimi, public_profile, lukutavoite, nayta_tulostaulu, nayta_lukupiirit')
       .single();
     if (error) {
       throw new Error(

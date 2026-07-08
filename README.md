@@ -64,6 +64,10 @@ src/
 - **Lukulista**: add books you want to read; "Merkitse luetuksi" opens the journal form prefilled and removes the item once the entry is saved.
 - **Muut lukijat suosittelevat**: shows *only* the title, author, rating, and recommendation reason of entries other users marked as recommended (never their summaries, quotes, or reflections). Powered by the `recommendations` view in [supabase/schema.sql](supabase/schema.sql); local mode shows demo data. One click adds a recommendation to your own wish list.
 
+## Basic vs. extended features
+
+By default the app shows only the basics: journal, wish list, recommendations, backup, and feedback. The extended features — reading goal, scoreboard, and reading circles — are opt-in: switch the profile (👤 in the header) to **Laajennettu** and pick the ones you want, individually. Switching back to **Perus** turns them all off (including scoreboard visibility to others).
+
 ## Profiles, scoreboard & reading goal
 
 - **Profile**: new Supabase users pick a username right after their first login (edit later from the 👤 button in the header). The profile also holds the yearly reading goal and the scoreboard opt-in.
