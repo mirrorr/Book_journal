@@ -1,0 +1,5 @@
+# Single-page-app fallback.
+# Luku routes exist only in the client-side
+# router, so a direct hit or reload on one would otherwise 404 on the host.
+# Status 200 rewrites rather than redirects, keeping the URL for the router.
+/*    /index.html   200
