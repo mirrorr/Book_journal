@@ -22,6 +22,66 @@ const fi = {
     logout: 'Kirjaudu ulos',
   },
 
+  nav: {
+    ariaLabel: 'Päävalikko',
+    dashboard: 'Päiväkirja',
+    rewards: 'Palkinnot',
+  },
+
+  rewards: {
+    title: 'Palkinnot',
+    subtitle: 'Jokainen luettu kirja on yksi karkki purkissa.',
+    jarAriaLabel: 'Karkkipurkki',
+    jarProgress: (n: number, total: number) => `${n} / ${total} karkkia purkissa`,
+    toGo: (n: number) =>
+      `${n} ${n === 1 ? 'karkki' : 'karkkia'} purkin täyttymiseen`,
+    jarEmpty: 'Purkki odottaa ensimmäistä karkkia.',
+    celebration: 'Purkki täynnä! 🎉',
+    shelfAriaLabel: 'Täydet purkit hyllyllä',
+    shelfEmpty: 'Hyllyllä ei ole vielä yhtään täyttä purkkia.',
+    jarsFull: (n: number) =>
+      `${n} ${n === 1 ? 'täysi purkki' : 'täyttä purkkia'} hyllyllä`,
+    andMore: (n: number) => `+${n} lisää`,
+    openJar: (n: number) => `Avaa purkki ${n}`,
+    jarNumber: (n: number) => `Purkki ${n}`,
+    jarContentsHint: 'Nämä kirjat mahtuivat tähän purkkiin.',
+    shelfHint: 'Napauta purkkia nähdäksesi sen kirjat.',
+    candyLabel: (title: string, author: string) => `${title} — ${author}`,
+    candyHint: 'Napauta karkkia nähdäksesi mikä kirja se on.',
+    badgesTitle: 'Makumerkit',
+    badgesSubtitle: 'Kerää merkkejä lukemalla monella eri tavalla.',
+    badgesProgress: (unlocked: number, total: number) =>
+      `${unlocked} / ${total} merkkiä avattu`,
+    locked: 'Vielä lukossa',
+    soundOn: 'Äänet käytössä',
+    soundOff: 'Äänet pois',
+    newBadgeTitle: (n: number) => (n === 1 ? 'Uusi merkki!' : `${n} uutta merkkiä!`),
+    newBadgeRibbon: 'Uusi!',
+    andMoreBadges: (n: number) => `+${n} muuta`,
+    resetBadges: 'Nollaa merkit',
+    resetConfirm:
+      'Nollataanko kaikki makumerkit? Karkkipurkit säilyvät, ja voit kerätä merkit uudelleen.',
+    resetNote: (date: string) => `Merkit nollattu ${date}.`,
+    undoReset: 'Kumoa nollaus',
+    badges: {
+      first: { title: 'Ensimmäinen makupala', desc: 'Kirjoita ensimmäinen merkintäsi.' },
+      five: { title: 'Makeannälkä', desc: 'Lue 5 kirjaa.' },
+      ten: { title: 'Ensimmäinen purkki', desc: 'Lue 10 kirjaa.' },
+      twentyFive: { title: 'Herkkuvarasto', desc: 'Lue 25 kirjaa.' },
+      fifty: { title: 'Sokerivuori', desc: 'Lue 50 kirjaa.' },
+      perfect: { title: 'Täydellinen maku', desc: 'Anna kirjalle viisi tähteä.' },
+      honest: { title: 'Rehellinen kriitikko', desc: 'Merkitse kirja, jota et suosittelisi.' },
+      quotes: { title: 'Lainauskeräilijä', desc: 'Talleta lempilainaus viidestä kirjasta.' },
+      thinker: { title: 'Syvä pohdinta', desc: 'Kirjoita pitkä pohdinta yhdestä kirjasta.' },
+      loyal: { title: 'Uskollinen fani', desc: 'Lue kolme kirjaa samalta kirjoittajalta.' },
+      busyMonth: { title: 'Ahkera kuukausi', desc: 'Lue neljä kirjaa saman kuukauden aikana.' },
+      streak3: {
+        title: 'Putkilukija',
+        desc: 'Lue kirja kolmena peräkkäisenä kuukautena.',
+      },
+    },
+  },
+
   app: {
     loading: 'Haetaan päiväkirjaa…',
     errorTitle: 'Jotain meni pieleen',
@@ -159,6 +219,8 @@ const fi = {
     circlesTitle: 'Lukupiirit',
     circlesDesc:
       'Lue yhdessä: perusta piiri tai liity kutsukoodilla, ja seuratkaa toistenne lukemista.',
+    rewardsTitle: 'Palkinnot',
+    rewardsDesc: 'Näytä karkkipurkki ja makumerkit omalla sivullaan.',
     saveFailed: 'Tallennus epäonnistui.',
     start: 'Aloita lukupäiväkirja',
   },

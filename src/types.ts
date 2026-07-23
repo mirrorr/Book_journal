@@ -75,6 +75,12 @@ export interface Profile {
   nayta_tulostaulu: boolean;
   /** Extended feature: show the reading circles section. */
   nayta_lukupiirit: boolean;
+  /**
+   * Show the rewards page (candy jar + taste badges). Unlike the toggles
+   * above this defaults to ON and is not an extended feature, so it must
+   * stay out of `hasExtendedFeatures` and out of the Basic/Extended reset.
+   */
+  nayta_palkinnot: boolean;
 }
 
 /** True when any extended feature is enabled. */

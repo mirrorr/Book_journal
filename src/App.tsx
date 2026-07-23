@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import type {
   Book,
   BookInput,
@@ -19,6 +19,8 @@ import BackupControls, { type ImportResult } from './components/BackupControls';
 import CommunitiesSection from './components/CommunitiesSection';
 import LanguageSwitcher from './components/LanguageSwitcher';
 import Wordmark from './components/Logo';
+import NavBar from './components/NavBar';
+import RewardsPage from './components/RewardsPage';
 import { useI18n } from './i18n';
 import FeedbackDialog from './components/FeedbackDialog';
 import ProfileDialog from './components/ProfileDialog';
@@ -110,6 +112,11 @@ export default function App() {
     }
     void refresh();
   }, [refresh, authEnabled, userId]);
+
+  // Rewards are on by default: `undefined` (profile saved before the flag
+  // existed) and a null profile both count as visible, so never write
+  // `profile?.nayta_palkinnot &&` here.
+  const showRewards = profile?.nayta_palkinnot !== false;
 
   const handleSaveProfile = async (input: Profile) => {
     const saved = await db.saveProfile(input);
@@ -278,6 +285,8 @@ export default function App() {
         </div>
       </header>
 
+      {!loading && error === null && <NavBar showRewards={showRewards} />}
+
       {loading ? (
         <LoadingState />
       ) : error !== null ? (
@@ -338,6 +347,10 @@ export default function App() {
                 </footer>
               </main>
             }
+          />
+          <Route
+            path="/palkinnot"
+            element={showRewards ? <RewardsPage books={books} /> : <Navigate to="/" replace />}
           />
           <Route
             path="/kirja/:id"

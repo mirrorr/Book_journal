@@ -4,6 +4,7 @@ import { EMPTY_BOOK_INPUT } from '../types';
 import { StarPicker } from './StarRating';
 import BookCover from './BookCover';
 import BookSearchInput from './BookSearchInput';
+import { playEntrySaved } from '../lib/sound';
 import { useI18n } from '../i18n';
 
 interface JournalFormProps {
@@ -71,6 +72,8 @@ export default function JournalForm({ book, initial, onSubmit, onClose }: Journa
     setError(null);
     try {
       await onSubmit(form);
+      // Only on success — a failed save should never sound like it worked.
+      playEntrySaved();
     } catch (err) {
       setError(err instanceof Error ? err.message : t.form.saveFailed);
       setSaving(false);

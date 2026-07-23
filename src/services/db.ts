@@ -183,7 +183,10 @@ class LocalStorageAdapter implements DbAdapter {
     const raw = localStorage.getItem(PROFILE_KEY);
     if (!raw) return null;
     try {
-      return JSON.parse(raw) as Profile;
+      const parsed = JSON.parse(raw) as Profile;
+      // Profiles stored before this field existed have it undefined; default
+      // it to true so the runtime value matches the non-optional type.
+      return { ...parsed, nayta_palkinnot: parsed.nayta_palkinnot !== false };
     } catch {
       return null;
     }
@@ -333,7 +336,9 @@ class SupabaseAdapter implements DbAdapter {
   async getProfile(): Promise<Profile | null> {
     const { data, error } = await getSupabaseClient()
       .from('profiles')
-      .select('kayttajanimi, public_profile, lukutavoite, nayta_tulostaulu, nayta_lukupiirit')
+      .select(
+        'kayttajanimi, public_profile, lukutavoite, nayta_tulostaulu, nayta_lukupiirit, nayta_palkinnot'
+      )
       .maybeSingle();
     if (error) throw new Error(error.message);
     return (data as Profile) ?? null;
@@ -348,7 +353,9 @@ class SupabaseAdapter implements DbAdapter {
     const { data, error } = await client
       .from('profiles')
       .upsert({ user_id: user.id, ...input }, { onConflict: 'user_id' })
-      .select('kayttajanimi, public_profile, lukutavoite, nayta_tulostaulu, nayta_lukupiirit')
+      .select(
+        'kayttajanimi, public_profile, lukutavoite, nayta_tulostaulu, nayta_lukupiirit, nayta_palkinnot'
+      )
       .single();
     if (error) {
       throw new Error(

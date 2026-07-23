@@ -62,6 +62,8 @@ export default function ProfileDialog({
   const [naytaTulostaulu, setNaytaTulostaulu] = useState(profile?.nayta_tulostaulu ?? false);
   const [naytaLukupiirit, setNaytaLukupiirit] = useState(profile?.nayta_lukupiirit ?? false);
   const [publicProfile, setPublicProfile] = useState(profile?.public_profile ?? false);
+  // Defaults to on, including for profiles saved before this field existed.
+  const [naytaPalkinnot, setNaytaPalkinnot] = useState(profile?.nayta_palkinnot !== false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -87,6 +89,8 @@ export default function ProfileDialog({
         nayta_tulostaulu: extended && naytaTulostaulu,
         nayta_lukupiirit: extended && naytaLukupiirit,
         public_profile: extended && naytaTulostaulu && publicProfile,
+        // Not an extended feature: survives switching back to Basic.
+        nayta_palkinnot: naytaPalkinnot,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : t.profile.saveFailed);
@@ -140,6 +144,15 @@ export default function ProfileDialog({
           />
           <span className="mt-1 block text-xs text-zinc-400">{t.profile.usernameHint}</span>
         </label>
+
+        {/* Always available — deliberately above the Basic/Extended toggle,
+            since switching to Basic must not turn the rewards off. */}
+        <FeatureCheckbox
+          checked={naytaPalkinnot}
+          onChange={setNaytaPalkinnot}
+          title={t.profile.rewardsTitle}
+          description={t.profile.rewardsDesc}
+        />
 
         <fieldset>
           <legend className="mb-2 text-sm font-semibold text-sepia-900">
