@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import type {
   Book,
   BookInput,
+  CommunityStats,
   Profile,
   Recommendation,
   Scoreboard,
@@ -17,6 +18,7 @@ import DashboardStats from './components/DashboardStats';
 import AuthPage from './components/AuthPage';
 import BackupControls, { type ImportResult } from './components/BackupControls';
 import CommunitiesSection from './components/CommunitiesSection';
+import CommunityStatsPanel from './components/CommunityStats';
 import LanguageSwitcher from './components/LanguageSwitcher';
 import Wordmark from './components/Logo';
 import NavBar from './components/NavBar';
@@ -70,6 +72,11 @@ export default function App() {
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [scoreboard, setScoreboard] = useState<Scoreboard>({ monthly: [], total: [] });
+  const [community, setCommunity] = useState<CommunityStats>({
+    lukijat: 0,
+    kirjat: 0,
+    suosituimmat: [],
+  });
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
 
   const refresh = useCallback(async () => {
@@ -79,18 +86,22 @@ export default function App() {
       await db.init();
       // Recommendations are nice-to-have: if the view is missing (e.g. an
       // older database), the journal itself must still work.
-      const [bookList, wishlistItems, recs, userProfile, scores] = await Promise.all([
-        db.list(),
-        db.listWishlist().catch(() => [] as WishlistItem[]),
-        db.listRecommendations().catch(() => [] as Recommendation[]),
-        db.getProfile().catch(() => null),
-        db.getScoreboard().catch(() => ({ monthly: [], total: [] }) as Scoreboard),
-      ]);
+      const emptyCommunity: CommunityStats = { lukijat: 0, kirjat: 0, suosituimmat: [] };
+      const [bookList, wishlistItems, recs, userProfile, scores, communityStats] =
+        await Promise.all([
+          db.list(),
+          db.listWishlist().catch(() => [] as WishlistItem[]),
+          db.listRecommendations().catch(() => [] as Recommendation[]),
+          db.getProfile().catch(() => null),
+          db.getScoreboard().catch(() => ({ monthly: [], total: [] }) as Scoreboard),
+          db.getCommunityStats().catch(() => emptyCommunity),
+        ]);
       setBooks(bookList);
       setWishlist(wishlistItems);
       setRecommendations(recs);
       setProfile(userProfile);
       setScoreboard(scores);
+      setCommunity(communityStats);
     } catch (err) {
       // Empty string = generic failure; rendered via the active dictionary so
       // the message follows the language without refetching on switch.
@@ -319,7 +330,10 @@ export default function App() {
                 />
                 <JournalGrid books={books} onNewEntry={openNewForm} />
 
-                <footer className="grid gap-4 border-t border-ivory-300 pt-8 sm:grid-cols-2">
+                <footer className="space-y-4 border-t border-ivory-300 pt-8">
+                  <CommunityStatsPanel stats={community} />
+
+                  <div className="grid gap-4 sm:grid-cols-2">
                   <section
                     aria-label={t.footer.backupTitle}
                     className="rounded-2xl border border-ivory-300 bg-ivory-50 p-6 shadow-sm"
@@ -344,6 +358,7 @@ export default function App() {
                       {t.footer.feedbackButton}
                     </button>
                   </section>
+                  </div>
                 </footer>
               </main>
             }

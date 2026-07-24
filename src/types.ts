@@ -114,6 +114,20 @@ export interface GroupScoreRow {
   kirjat_kuussa: number;
 }
 
+/** A most-read title across the whole community. */
+export interface TopBook {
+  kirjan_nimi: string;
+  kirjoittaja: string;
+  lukukerrat: number;
+}
+
+/** Anonymous, community-wide totals. No individual is identifiable. */
+export interface CommunityStats {
+  lukijat: number;
+  kirjat: number;
+  suosituimmat: TopBook[];
+}
+
 export const EMPTY_BOOK_INPUT: BookInput = {
   kirjan_nimi: '',
   kirjoittaja: '',

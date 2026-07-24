@@ -97,6 +97,16 @@ const fi = {
     feedbackButton: '💬 Lähetä palautetta',
   },
 
+  community: {
+    title: 'Lukijayhteisö',
+    subtitle: 'Koko yhteisö yhdessä',
+    readers: 'Lukijoita',
+    booksRead: 'Luettuja kirjoja',
+    topBooks: 'Luetuimmat kirjat',
+    timesRead: (n: number) => `${n} ${n === 1 ? 'lukukerta' : 'lukukertaa'}`,
+    empty: 'Ei vielä yhteisön tilastoja.',
+  },
+
   grid: {
     ariaLabel: 'Luetut kirjat',
     emptyTitle: 'Päiväkirjasi on vielä tyhjä',

@@ -205,6 +205,38 @@ revoke all on public.scoreboard_total, public.scoreboard_monthly from anon, publ
 grant select on public.scoreboard_total, public.scoreboard_monthly to authenticated;
 
 -- ---------------------------------------------------------------------------
+-- Community stats: anonymous, aggregate-only totals for everyone. Same
+-- security-definer pattern; these views expose nothing that identifies a
+-- user — just counts and popular titles.
+-- ---------------------------------------------------------------------------
+
+drop view if exists public.community_totals;
+create view public.community_totals
+with (security_invoker = off) as
+  select
+    (select count(*) from public.profiles)::int as lukijat,
+    (select count(*) from public.books)::int as kirjat;
+
+-- Most-read titles across everyone. Grouped on a normalised title so the
+-- same book entered with slightly different casing still combines; a
+-- representative title/author is picked with min().
+drop view if exists public.top_books;
+create view public.top_books
+with (security_invoker = off) as
+  select
+    min(kirjan_nimi) as kirjan_nimi,
+    min(kirjoittaja) as kirjoittaja,
+    count(*)::int as lukukerrat
+  from public.books
+  where trim(kirjan_nimi) <> ''
+  group by lower(trim(kirjan_nimi))
+  order by count(*) desc, min(kirjan_nimi)
+  limit 3;
+
+revoke all on public.community_totals, public.top_books from anon, public;
+grant select on public.community_totals, public.top_books to authenticated;
+
+-- ---------------------------------------------------------------------------
 -- Feedback: bug reports and improvement ideas from users. Write-only for
 -- users (they can insert but not read others' feedback); read it yourself
 -- in the Supabase Table Editor or SQL Editor.

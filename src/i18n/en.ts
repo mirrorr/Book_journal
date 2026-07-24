@@ -91,6 +91,16 @@ const en: Dict = {
     feedbackButton: '💬 Send feedback',
   },
 
+  community: {
+    title: 'Reader community',
+    subtitle: 'The whole community together',
+    readers: 'Readers',
+    booksRead: 'Books read',
+    topBooks: 'Most-read books',
+    timesRead: (n: number) => `${n} ${n === 1 ? 'read' : 'reads'}`,
+    empty: 'No community stats yet.',
+  },
+
   grid: {
     ariaLabel: 'Books read',
     emptyTitle: 'Your journal is still empty',

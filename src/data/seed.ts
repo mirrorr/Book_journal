@@ -1,4 +1,4 @@
-import type { BookInput, Recommendation, Scoreboard } from '../types';
+import type { BookInput, CommunityStats, Recommendation, Scoreboard } from '../types';
 
 /**
  * Real-world sample data used to initialize an empty data store,
@@ -73,3 +73,17 @@ export const MOCK_RECOMMENDATIONS: Recommendation[] = [
     kansikuva_url: '',
   },
 ];
+
+/**
+ * Demo community totals for local mode, where there is no shared database.
+ * In Supabase mode these come from the community_totals / top_books views.
+ */
+export const MOCK_COMMUNITY_STATS: CommunityStats = {
+  lukijat: 128,
+  kirjat: 1463,
+  suosituimmat: [
+    { kirjan_nimi: 'Kesäkirja', kirjoittaja: 'Tove Jansson', lukukerrat: 41 },
+    { kirjan_nimi: 'Tuntematon sotilas', kirjoittaja: 'Väinö Linna', lukukerrat: 33 },
+    { kirjan_nimi: 'Juurihoito', kirjoittaja: 'Miika Nousiainen', lukukerrat: 29 },
+  ],
+};

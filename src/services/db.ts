@@ -1,6 +1,7 @@
 import type {
   Book,
   BookInput,
+  CommunityStats,
   FeedbackInput,
   Group,
   GroupScoreRow,
@@ -8,10 +9,11 @@ import type {
   Recommendation,
   Scoreboard,
   ScoreRow,
+  TopBook,
   WishlistInput,
   WishlistItem,
 } from '../types';
-import { MOCK_RECOMMENDATIONS, MOCK_SCOREBOARD, SEED_BOOKS } from '../data/seed';
+import { MOCK_COMMUNITY_STATS, MOCK_RECOMMENDATIONS, MOCK_SCOREBOARD, SEED_BOOKS } from '../data/seed';
 import { getSupabaseClient } from '../lib/supabaseClient';
 
 /**
@@ -45,6 +47,8 @@ export interface DbAdapter {
   joinGroup(kutsukoodi: string): Promise<Group>;
   leaveGroup(id: string): Promise<void>;
   getGroupScoreboard(id: string): Promise<GroupScoreRow[]>;
+  /** Anonymous community-wide totals (mock data in local mode). */
+  getCommunityStats(): Promise<CommunityStats>;
 }
 
 /* ------------------------------------------------------------------ */
@@ -242,6 +246,34 @@ class LocalStorageAdapter implements DbAdapter {
   async getGroupScoreboard(): Promise<GroupScoreRow[]> {
     return [];
   }
+
+  async getCommunityStats(): Promise<CommunityStats> {
+    await delay(MOCK_LATENCY_MS);
+    // Local mode has no community, so fold the local reader into the demo
+    // totals to make the section feel alive.
+    const books = this.read();
+    const counts = new Map<string, TopBook>();
+    for (const [title, author, base] of MOCK_COMMUNITY_STATS.suosituimmat.map(
+      (b) => [b.kirjan_nimi, b.kirjoittaja, b.lukukerrat] as const
+    )) {
+      counts.set(title.toLowerCase(), { kirjan_nimi: title, kirjoittaja: author, lukukerrat: base });
+    }
+    for (const book of books) {
+      const key = book.kirjan_nimi.trim().toLowerCase();
+      if (!key) continue;
+      const existing = counts.get(key);
+      if (existing) existing.lukukerrat += 1;
+      else counts.set(key, { kirjan_nimi: book.kirjan_nimi, kirjoittaja: book.kirjoittaja, lukukerrat: 1 });
+    }
+    const suosituimmat = [...counts.values()]
+      .sort((a, b) => b.lukukerrat - a.lukukerrat)
+      .slice(0, 3);
+    return {
+      lukijat: MOCK_COMMUNITY_STATS.lukijat + 1,
+      kirjat: MOCK_COMMUNITY_STATS.kirjat + books.length,
+      suosituimmat,
+    };
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -423,6 +455,26 @@ class SupabaseAdapter implements DbAdapter {
     });
     if (error) throw new Error(error.message);
     return (data ?? []) as GroupScoreRow[];
+  }
+
+  async getCommunityStats(): Promise<CommunityStats> {
+    const client = getSupabaseClient();
+    // Two aggregate views, both exposing only counts — never a user or a
+    // private field. Fetched together; the top list is best-effort.
+    const [totals, top] = await Promise.all([
+      client.from('community_totals').select('lukijat, kirjat').maybeSingle(),
+      client
+        .from('top_books')
+        .select('kirjan_nimi, kirjoittaja, lukukerrat')
+        .order('lukukerrat', { ascending: false })
+        .limit(3),
+    ]);
+    if (totals.error) throw new Error(totals.error.message);
+    return {
+      lukijat: (totals.data?.lukijat as number) ?? 0,
+      kirjat: (totals.data?.kirjat as number) ?? 0,
+      suosituimmat: (top.data ?? []) as TopBook[],
+    };
   }
 }
 
