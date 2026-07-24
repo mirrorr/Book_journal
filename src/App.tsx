@@ -23,6 +23,7 @@ import LanguageSwitcher from './components/LanguageSwitcher';
 import Wordmark from './components/Logo';
 import NavBar from './components/NavBar';
 import RewardsPage from './components/RewardsPage';
+import MusicPlayer from './components/MusicPlayer';
 import { useI18n } from './i18n';
 import FeedbackDialog from './components/FeedbackDialog';
 import ProfileDialog from './components/ProfileDialog';
@@ -399,6 +400,8 @@ export default function App() {
           onClose={() => setProfileDialogOpen(false)}
         />
       )}
+
+      <MusicPlayer />
     </div>
   );
 }

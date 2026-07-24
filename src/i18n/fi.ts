@@ -28,6 +28,23 @@ const fi = {
     rewards: 'Palkinnot',
   },
 
+  music: {
+    label: 'Taustamusiikki',
+    play: 'Soita',
+    pause: 'Keskeytä',
+    next: 'Seuraava kappale',
+    prev: 'Edellinen kappale',
+    volume: 'Äänenvoimakkuus',
+    close: 'Pienennä',
+    unavailable: 'Kappaletta ei voitu toistaa.',
+    tracks: {
+      piano: 'Rauhallinen piano',
+      chill: 'Chill',
+      study: 'Opiskelutunnelma',
+      relax: 'Rentoutus',
+    },
+  },
+
   rewards: {
     title: 'Palkinnot',
     subtitle: 'Jokainen luettu kirja on yksi karkki purkissa.',

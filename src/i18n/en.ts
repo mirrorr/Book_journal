@@ -27,6 +27,23 @@ const en: Dict = {
     rewards: 'Rewards',
   },
 
+  music: {
+    label: 'Background music',
+    play: 'Play',
+    pause: 'Pause',
+    next: 'Next track',
+    prev: 'Previous track',
+    volume: 'Volume',
+    close: 'Minimise',
+    unavailable: 'The track could not be played.',
+    tracks: {
+      piano: 'Calm piano',
+      chill: 'Chill',
+      study: 'Study mood',
+      relax: 'Relax',
+    },
+  },
+
   rewards: {
     title: 'Rewards',
     subtitle: 'Every book you finish is one more sweet in the jar.',
